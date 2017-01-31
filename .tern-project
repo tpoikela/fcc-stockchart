@@ -1,0 +1,18 @@
+{
+  "libs": [
+    "browser",
+    "jquery",
+    "react",
+    "react-dom",
+    "chai",
+    "ecmascript",
+    "express"
+  ],
+  "plugins": {
+    "node": {},
+    "requirejs": {
+      "baseURL": "./",
+      "paths": {}
+    }
+  }
+}
