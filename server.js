@@ -21,18 +21,17 @@ else {
 // Load required modules
 var express = require('express');
 var mongoose = require('mongoose');
-//var passport = require('passport');
-//var session = require('express-session');
-//var bodyParser = require('body-parser');
 var morgan = require('morgan');
 
 // Sources for this app
 var routes = require('./server/routes/index.js');
 
+// Create express app and socket.io connection
 var app = express();
-app.set('view engine', 'pug');
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
 
-//require('./app/config/passport')(passport);
+app.set('view engine', 'pug');
 
 app.url = process.env.APP_URL;
 console.log('The full APP url: ' + app.url);
@@ -42,24 +41,28 @@ mongoose.Promise = global.Promise;
 
 // Initialize resource paths for the server
 app.use('/build', express.static(process.cwd() + '/build'));
-//app.use('/controllers', express.static(process.cwd() + '/app/controllers'));
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/common', express.static(process.cwd() + '/app/common'));
-//app.use('/pug', express.static(process.cwd() + '/pug'));
 
 app.locals.pretty = true;
 
-//app.use(passport.initialize());
-//app.use(passport.session());
-
-//app.use(bodyParser.urlencoded({extended: false}));
-//app.use(bodyParser.json());
 
 app.use(morgan('combined'));
 
 routes(app);
 
 var port = process.env.PORT || 8080;
-app.listen(port, function() {
+
+http.listen(port, function() {
 	console.log('StockChart Server listening on port ' + port + '...');
+});
+
+io.on('connection', (socket) => {
+    console.log('A user connected.');
+
+    socket.on('client message', (msg) => {
+        console.log('Server got message: ' + msg);
+        var newMsg = Object.assign({}, msg, {newMsg: 'Server says hi'});
+        io.emit('server message', newMsg);
+    });
 });
