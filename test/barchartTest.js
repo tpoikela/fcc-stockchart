@@ -8,17 +8,9 @@ var request = require('request');
 
 const expect = chai.expect;
 
-// Reads in the API key
-require('dotenv').load('../.env');
-
 // Calls the real API if false
 var mockReq = true;
-
-if (!process.env.BARCHART_KEY) {
-    console.log('barchartTest.js cannot be run without an API key');
-    console.log('Specify key as BARCHART_KEY in .env');
-}
-else {
+checkPrerequisites(mockReq);
 
 describe('BarChart class', function() {
 
@@ -47,7 +39,9 @@ describe('BarChart class', function() {
         };
 
         if (mockReq) {
-            reqGet.yields(null, {body: {results: []}});
+            reqGet.yields(null, {
+                body: {results: [{}, {}]}
+            });
         }
 
         barchart.getQuote(obj, (err, res) => {
@@ -79,4 +73,18 @@ describe('BarChart class', function() {
 
 });
 
+
+function checkPrerequisites(mockReq) {
+    if (!mockReq) {
+
+        // Reads in the API key
+        require('dotenv').load('../.env');
+
+        if (!process.env.BARCHART_KEY) {
+            var msg = 'barchartTest.js cannot be run without an API key';
+            msg += 'Specify key as BARCHART_KEY in .env';
+            var err = new Error(msg);
+            throw err;
+        }
+    }
 }
