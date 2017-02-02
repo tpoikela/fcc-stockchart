@@ -1,0 +1,32 @@
+stockchart=~/git/fcc-stockchart CD=~/git/fcc-stockchart filter="*.*" {
+ README.md
+ example_data.json
+ gulpfile.js
+ package.json
+ sample.env
+ server.js
+ . # pragma keep
+ build=build {
+  bundle.js
+ }
+ git=.git {
+ }
+ test=test {
+  barchartTest.js
+ }
+ public=public {
+  index.html
+ }
+ client=client {
+ }
+ server=server {
+  ctrl=ctrl {
+   barchart.js
+  }
+  routes=routes {
+   index.js
+  }
+ }
+ node_modules=node_modules {
+ }
+}
