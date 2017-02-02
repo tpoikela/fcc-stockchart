@@ -2,22 +2,9 @@
 'use strict';
 
 const request = require('request');
-
-var uri = 'http://marketdata.websol.barchart.com';
-
-/*
-var symbols = 'symbols=AAPL%2CGOOG';
-var fields = 'fields=fiftyTwoWkHigh%2CfiftyTwoWkHighDate'
-    + '%2CfiftyTwoWkLow%2CfiftyTwoWkLowDate';
-var mode = 'mode=I';
-
-var histSym = 'symbol=IBM';
-var histType = 'type=daily';
-var histStart = 'startDate=20160131000000';
-*/
-
 const qs = require('querystring');
 
+var uri = 'http://marketdata.websol.barchart.com';
 
 class BarChart {
 
