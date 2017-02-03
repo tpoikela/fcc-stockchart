@@ -66,7 +66,9 @@ describe('BarChart class', function() {
         }
 
         barchart.getHistory(obj, (err, res, body) => {
+            var bodyObj = JSON.parse(body);
             expect(err).to.be.null;
+            expect(bodyObj.results).not.to.be.null;
             done();
         });
     });
@@ -84,7 +86,9 @@ describe('BarChart class', function() {
         }
 
         barchart.getHistory(obj, (err, res, body) => {
+            var bodyObj = JSON.parse(body);
             expect(err).to.be.null;
+            expect(bodyObj.results).to.be.null;
             done();
         });
     });
