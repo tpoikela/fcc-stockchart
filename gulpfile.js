@@ -25,6 +25,8 @@ var paths = {
 
     tags: ['./client/**/*', './server/**/*', './scss/**/*'],
 
+    test: ['./client/plots/*.js', './test/xyplot.js']
+
 };
 
 gulp.task('build-js', function() {
@@ -38,7 +40,7 @@ gulp.task('build-js', function() {
 
 gulp.task('build-test', function() {
     return browserify({entries:
-        ['./app/common/ajax-functions.js', 'tests/ajax-functions.js'],
+        ['test/xyplot.js'],
         extensions: ['.js'], debug: true})
         .transform(babelify)
         .bundle()
@@ -104,6 +106,10 @@ gulp.task('watch', watchDependents, function() {
     gulp.watch(paths.server, ['serve']);
     gulp.watch(paths.sass, ['build-sass']);
     gulp.watch(paths.tags, ['tags']);
+});
+
+gulp.task('watch-test', ['build-test'], function() {
+    gulp.watch(paths.test, ['build-test']);
 });
 
 gulp.task('default', ['watch']);
