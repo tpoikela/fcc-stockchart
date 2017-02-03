@@ -9,6 +9,9 @@ var uri = 'http://marketdata.websol.barchart.com';
 class BarChart {
 
     constructor(key) {
+        if (!key) {
+            throw new Error('API key must be given.');
+        }
         this.key = key;
     }
 
@@ -21,19 +24,15 @@ class BarChart {
 
     /* For retrieving historical information about stocks.*/
     getHistory(obj, cb) {
-        var fullURI = uri + '/getHistory.json?';
         var queryStr = this.getQueryString(obj);
-        fullURI += queryStr;
+        var fullURI = uri + '/getHistory.json?' + queryStr;
 
-        console.log('getHistory QS: ' + queryStr);
-        console.log('getHistory full URI: ' + fullURI);
-
-        request.get(fullURI, (err, res) => {
+        request.get(fullURI, (err, res, body) => {
             if (err) {
-                cb(null, res);
+                cb(err, null, null);
             }
             else {
-                cb(null, res);
+                cb(null, res, body);
             }
         });
     }
@@ -42,14 +41,13 @@ class BarChart {
     getQuote(obj, cb) {
         var queryStr = this.getQueryString(obj);
         var fullURI = uri + '/getQuote.json?' + queryStr;
-        console.log('getQuote QS: ' + queryStr);
 
-        request.get(fullURI, (err, res) => {
+        request.get(fullURI, (err, res, body) => {
             if (err) {
-                cb(err);
+                cb(err, null, null);
             }
             else {
-                cb(null, res);
+                cb(null, res, body);
             }
         });
 

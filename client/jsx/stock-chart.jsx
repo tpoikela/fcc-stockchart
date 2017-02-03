@@ -14,8 +14,10 @@ class StockChart extends React.Component {
 		this.onChange = this.onChange.bind(this);
 
 		this.state = {
+            error: null,
             symbol: null,
-            symbols: []
+            symbols: [],
+            data: {}
 		};
     }
 
@@ -53,19 +55,32 @@ class StockChart extends React.Component {
             var symbols = this.state.symbols;
 
             if (msg.cmd === 'addSym') {
-                symbols.push(newSymbol);
+                if (msg.body !== null) {
+                    symbols.push(newSymbol);
+                    console.log('Got body: ' + msg.body);
+                    var data = this.state.data;
+                    data[newSymbol] = msg.body;
+                    this.setState({symbols: symbols, data: data, error: null});
+                }
+                else {
+                    this.setState({error: 'No symbol found.'});
+                }
             }
             else {
                 var index = symbols.indexOf(newSymbol);
                 symbols.splice(index, 1);
-
+                this.setState({symbols: symbols});
             }
-            this.setState({symbols: symbols});
         });
 
     }
 
     render() {
+
+        var keys = Object.keys(this.state.data);
+        var dataElems = keys.map( (item, index) => {
+            return (<p key={index} >Placeholder for {item} data.</p>);
+        });
 
         var symbolElems = this.state.symbols.map( (item, index) => {
             return (
@@ -77,10 +92,16 @@ class StockChart extends React.Component {
             );
         });
 
+        var errorElem = null;
+        if (this.state.error) {
+            errorElem = <p className='text-danger'>{this.state.error}</p>;
+        }
+
         return (
             <div>
+                {dataElems}
                 {symbolElems}
-				<div id='server-resp'>No messages</div>
+                {errorElem}
 				<input name='input-sym' onChange={this.onChange} />
 				<button onClick={this.addSym}>Add</button>
             </div>

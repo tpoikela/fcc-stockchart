@@ -22,6 +22,7 @@ else {
 var express = require('express');
 var mongoose = require('mongoose');
 var morgan = require('morgan');
+const BarChart = require('./server/ctrl/barchart');
 
 // Sources for this app
 var routes = require('./server/routes/index.js');
@@ -30,6 +31,8 @@ var routes = require('./server/routes/index.js');
 var app = express();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+
+var barchart = new BarChart(process.env.BARCHART_KEY);
 
 app.set('view engine', 'pug');
 
@@ -62,7 +65,23 @@ io.on('connection', (socket) => {
 
     socket.on('client message', (msg) => {
         console.log('Server got message: ' + msg);
-        var newMsg = Object.assign({}, msg, {newMsg: 'Server says hi'});
-        io.emit('server message', newMsg);
+        var query = {
+            symbol: msg.symbol,
+            type: 'daily',
+            startDate: '20160101000000'
+        };
+
+        barchart.getHistory(query, (err, res, body) => {
+            if (err) {
+                io.emit('server message', {error: 'An error occurred.'});
+            }
+            else {
+                var newMsg = Object.assign({}, msg, {newMsg: 'Server says hi'});
+                newMsg.body = body;
+                io.emit('server message', newMsg);
+            }
+
+        });
     });
 });
+
