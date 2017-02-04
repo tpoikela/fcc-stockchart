@@ -3,6 +3,7 @@
 
 const React = require('react');
 const io = require('socket.io-client');
+const XYPlot = require('../plots/xyplot.js');
 
 class StockChart extends React.Component {
 
@@ -12,6 +13,8 @@ class StockChart extends React.Component {
 		this.addSym = this.addSym.bind(this);
 		this.deleteSym = this.deleteSym.bind(this);
 		this.onChange = this.onChange.bind(this);
+
+        this.plot = null;
 
 		this.state = {
             error: null,
@@ -59,7 +62,16 @@ class StockChart extends React.Component {
                     symbols.push(newSymbol);
                     console.log('Got body: ' + msg.body);
                     var data = this.state.data;
+                    var obj = JSON.parse(msg.body);
                     data[newSymbol] = msg.body;
+                    if (this.plot === null) {
+                        console.log('typeof body ' + typeof msg.body);
+                        console.log('Results are ' + obj.results);
+                        this.plot = new XYPlot('#plot-div', obj.results);
+                    }
+                    else {
+                        this.plot.addData(obj.results, 'green');
+                    }
                     this.setState({symbols: symbols, data: data, error: null});
                 }
                 else {
@@ -99,6 +111,7 @@ class StockChart extends React.Component {
 
         return (
             <div>
+                <div id='plot-div'/>
                 {dataElems}
                 {symbolElems}
                 {errorElem}
