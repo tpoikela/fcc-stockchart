@@ -1,19 +1,4 @@
 
-/*
- * Data to plot (an array of these):
-{
-    "symbol":"GOOG",
-    "timestamp":"2016-09-01T00:00:00-04:00",
-    "tradingDay":"2016-09-01",
-    "open":769.25,
-    "high":771.02,
-    "low":764.3,
-    "close":768.78,
-    "volume":925100,
-    "openInterest":null
-}
-*/
-
 const d3 = require('d3');
 
 class XYPlot {
@@ -35,6 +20,8 @@ class XYPlot {
 
         var w = chartDiv.style('width').replace('px', '');
         console.log('chartDiv w is ' + w);
+
+        chartDiv.append('svg');
 
         var svg = d3.select('svg');
         svg.attr('style', 'height: ' + maxHeight + 'px');
