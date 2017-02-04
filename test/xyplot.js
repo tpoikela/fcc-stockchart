@@ -27,7 +27,7 @@ console.log('Setting up window onLoad');
 console.log('Starting to create the plot');
 var plot = new XYPlot('#plot', data);
 
-plot.addData(data2);
+plot.addData(data2, 'green');
 
 console.log('Plot has been created');
 

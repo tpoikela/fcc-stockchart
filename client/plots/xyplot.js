@@ -42,17 +42,12 @@ class XYPlot {
 
         var svgWidth = w * 0.8;
         var svgHeight = svg.style('height').replace('px', '');
-        maxWidth = svgWidth - margin.left - margin.right;
-        maxHeight = svgHeight - margin.top - margin.bottom;
+        this.maxWidth = svgWidth - margin.left - margin.right;
+        this.maxHeight = svgHeight - margin.top - margin.bottom;
 
         // Create X-axis with trading days
         var tradingDays = data.map( (item) => {
             return item.tradingDay;
-        });
-
-        var prices = data.map( (item) => {
-            var price = parseFloat(item[this.priceType]);
-            return price;
         });
 
         var nLastDay = tradingDays.length - 1;
@@ -62,18 +57,19 @@ class XYPlot {
 
         var xScale = d3.scaleTime()
             .domain([firstDay, lastDay])
-            .range([0, maxWidth]);
+            .range([0, this.maxWidth]);
 
-        var minPrice = Math.min.apply(null, prices);
-        var maxPrice = Math.max.apply(null, prices);
-		this.minY = minPrice;
+		var minMaxPrice = this.getMinMaxPrices(data);
+        var minPrice = minMaxPrice[0];
+        var maxPrice = minMaxPrice[1];
+        this.minY = minPrice;
 		this.maxY = maxPrice;
 
         console.log('min: ' + minPrice + ' -- max: ' + maxPrice);
 
         var yScale = d3.scaleLinear()
             .domain([maxPrice + 10, minPrice - 10])
-            .range([0, maxHeight]);
+            .range([0, this.maxHeight]);
 
         // Create inner g-element which applies the margins
         var g = svg.append('g')
@@ -82,7 +78,7 @@ class XYPlot {
                 + margin.top + ')');
 		this.g = g;
 
-        var xAxisY = maxHeight;
+        var xAxisY = this.maxHeight;
 
         // Create X-axis
         var xAxis = g.append('g');
@@ -115,6 +111,19 @@ class XYPlot {
         this.chartDiv = chartDiv;
     }
 
+    /* Returns min and max price in the data.*/
+	getMinMaxPrices(data) {
+        var prices = data.map( (item) => {
+            var price = parseFloat(item[this.priceType]);
+            return price;
+        });
+
+        var minPrice = Math.min.apply(null, prices);
+        var maxPrice = Math.max.apply(null, prices);
+
+		return [minPrice, maxPrice];
+	}
+
     dayToInt(day) {
         day = day.replace(/-/g, '');
         day = parseInt(day, 10);
@@ -133,12 +142,38 @@ class XYPlot {
 
     }
 
-	addData(data) {
-		this.createPlot(this.g, 'yellow', data);
-
+    /* Adds a new dataset to the plot.*/
+	addData(data, color) {
+		this.createPlot(this.g, color, data);
 	}
 
 	createPlot(g, color, data) {
+
+        var minMaxPrice = this.getMinMaxPrices(data);
+        var minPrice = minMaxPrice[0];
+        var maxPrice = minMaxPrice[1];
+
+        var createNewScale = false;
+        if (minPrice < this.minY) {
+            this.minY = minPrice;
+            createNewScale = true;
+        }
+        if (maxPrice > this.maxY) {
+            this.maxY = maxPrice;
+            createNewScale = true;
+        }
+
+        if (createNewScale) {
+            this.yScale = d3.scaleLinear()
+            .domain([this.maxY + 10, this.minY - 10])
+            .range([0, this.maxHeight]);
+
+            this.yAxis.attr('class', 'axis y-axis')
+                .text('price')
+                .call(d3.axisRight(this.yScale));
+
+        }
+
 		var plotLine = d3.line()
 			.x( d => {
 				return this.xScale(new Date(d.tradingDay));
