@@ -66,6 +66,8 @@ class XYPlot {
 
         var minPrice = Math.min.apply(null, prices);
         var maxPrice = Math.max.apply(null, prices);
+		this.minY = minPrice;
+		this.maxY = maxPrice;
 
         console.log('min: ' + minPrice + ' -- max: ' + maxPrice);
 
@@ -78,6 +80,7 @@ class XYPlot {
             .attr('id', 'g-margins')
             .attr('transform', 'translate(' + margin.left + ','
                 + margin.top + ')');
+		this.g = g;
 
         var xAxisY = maxHeight;
 
@@ -96,52 +99,20 @@ class XYPlot {
             .call(d3.axisRight(yScale)
         );
 
+		// Store axes and scales for other functions
+        this.xScale = xScale;
+        this.yScale = yScale;
+        this.xAxis = xAxis;
+        this.yAxis = yAxis;
 
-		var plotLine = d3.line()
-			.x( d => {
-				return xScale(new Date(d.tradingDay));
-			})
-			.y( d => {
-				return yScale(d[this.priceType]);
-		});
-
-		// Add the valueline path.
-		g.append('path')
-			.datum(data)
-			.attr('class', 'plot-line')
-			.attr('fill', 'none')
-			.attr('stroke-width', 2)
-			.style('stroke', 'red')
-			.attr('d', plotLine);
+		this.createPlot(g, 'blue', data);
 
         // Draw dots
-        g.selectAll('.pricePoint')
-            .data(data).enter()
-            .append('circle')
-                .attr('class', '.pricePoint')
-                .attr('r', 5)
-                .attr('cx', (d) => {
-                    var day = new Date(d.tradingDay);
-                    var cx = xScale(day);
-                    console.log('Returning cx: ' + day + ' => ' + cx);
-                    return cx;
-                })
-                .attr('cy', (d) => {
-                    var price = d[this.priceType];
-                    var cy = yScale(price);
-                    console.log('Returning cy: ' + price + ' => ' + cy);
-                    return cy;
-                })
-                .style('fill', 'red');
 
         // Draw lines between dots
 
         this.svg = svg;
         this.chartDiv = chartDiv;
-        this.xScale = xScale;
-        this.yScale = yScale;
-        this.xAxis = xAxis;
-        this.yAxis = yAxis;
     }
 
     dayToInt(day) {
@@ -161,6 +132,50 @@ class XYPlot {
         console.log(scaleType);
 
     }
+
+	addData(data) {
+		this.createPlot(this.g, 'yellow', data);
+
+	}
+
+	createPlot(g, color, data) {
+		var plotLine = d3.line()
+			.x( d => {
+				return this.xScale(new Date(d.tradingDay));
+			})
+			.y( d => {
+				return this.yScale(d[this.priceType]);
+		});
+
+		// Add the path for the plot
+		g.append('path')
+			.datum(data)
+			.attr('class', 'plot-line')
+			.attr('fill', 'none')
+			.attr('stroke-width', 2)
+			.style('stroke', color)
+			.attr('d', plotLine);
+
+        g.selectAll('.randomValueXX')
+            .data(data).enter()
+            .append('circle')
+                .attr('class', '.pricePoint')
+                .attr('r', 5)
+                .attr('cx', (d) => {
+                    var day = new Date(d.tradingDay);
+                    var cx = this.xScale(day);
+                    console.log('Returning cx: ' + day + ' => ' + cx);
+                    return cx;
+                })
+                .attr('cy', (d) => {
+                    var price = d[this.priceType];
+                    var cy = this.yScale(price);
+                    console.log('Returning cy: ' + price + ' => ' + cy);
+                    return cy;
+                })
+                .style('fill', color);
+
+	}
 
 }
 
