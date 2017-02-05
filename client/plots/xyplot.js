@@ -8,7 +8,7 @@ class XYPlot {
         this.elemID = elemID;
         this.priceType = 'high';
 
-        var maxWidth = 800;
+        var maxWidth = 1000;
         var maxHeight = 560;
         var margin = {top: 10, left: 10, right: 10, bottom: 20};
 
@@ -117,24 +117,26 @@ class XYPlot {
         return day;
     }
 
-    /* Selects which data is plotted. */
-    setPlotted(name) {
-        console.log(name);
-
-    }
-
-    /* Set monthly or yearly view etc.*/
-    setScale(scaleType) {
-        console.log(scaleType);
-
-    }
-
     /* Adds a new dataset to the plot.*/
 	addData(data, color) {
 		this.createPlot(this.g, color, data);
 	}
 
+    /* Removes a plot with the given symbol.*/
+    removePlot(symbol) {
+        this.g.select('.plot-line-' + symbol)
+            .remove();
+
+        this.g.selectAll('.price-point-' + symbol)
+            .remove();
+    }
+
 	createPlot(g, color, data) {
+
+        var symbol = data[0].symbol;
+        if (!symbol) {
+            throw new Error('No symbol found in data.');
+        }
 
         var minMaxPrice = this.getMinMaxPrices(data);
         var minPrice = minMaxPrice[0];
@@ -172,7 +174,7 @@ class XYPlot {
 		// Add the path for the plot
 		g.append('path')
 			.datum(data)
-			.attr('class', 'plot-line')
+			.attr('class', 'plot-line ' + 'plot-line-' + symbol)
 			.attr('fill', 'none')
 			.attr('stroke-width', 2)
 			.style('stroke', color)
@@ -181,18 +183,16 @@ class XYPlot {
         g.selectAll('.randomValueXX')
             .data(data).enter()
             .append('circle')
-                .attr('class', '.pricePoint')
+                .attr('class', 'price-point ' + 'price-point-' + symbol)
                 .attr('r', 5)
                 .attr('cx', (d) => {
                     var day = new Date(d.tradingDay);
                     var cx = this.xScale(day);
-                    console.log('Returning cx: ' + day + ' => ' + cx);
                     return cx;
                 })
                 .attr('cy', (d) => {
                     var price = d[this.priceType];
                     var cy = this.yScale(price);
-                    console.log('Returning cy: ' + price + ' => ' + cy);
                     return cy;
                 })
                 .style('fill', color);

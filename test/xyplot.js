@@ -1,7 +1,6 @@
 
 const XYPlot = require('../client/plots/xyplot');
 
-
 var data = [
 	{symbol: 'XXX', tradingDay: '2016-08-29', open: 768.74, high: 774.99, low: 766.61, close: 772.15},
 	{symbol: 'XXX', tradingDay: '2016-08-30', open: 769.33, high: 774.47, low: 766.84, close: 769.09},
@@ -30,4 +29,33 @@ var plot = new XYPlot('#plot', data);
 plot.addData(data2, 'green');
 
 console.log('Plot has been created');
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    console.log('Setting up event listeners for buttons');
+
+	var add1 = document.querySelector('#add1');
+	var add2 = document.querySelector('#add2');
+	var del1 = document.querySelector('#del1');
+	var del2 = document.querySelector('#del2');
+
+	add1.addEventListener('click', () => {
+		plot.addData(data, 'blue');
+	});
+
+	add2.addEventListener('click', () => {
+		plot.addData(data2, 'green');
+	});
+
+	del1.addEventListener('click', () => {
+		console.log('Removing data XXX');
+		plot.removePlot('XXX');
+	});
+
+	del2.addEventListener('click', () => {
+		console.log('Removing data YYY');
+		plot.removePlot('YYY');
+	});
+
+});
 
