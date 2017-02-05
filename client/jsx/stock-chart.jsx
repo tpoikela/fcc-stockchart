@@ -86,27 +86,37 @@ class StockChart extends React.Component {
                 var data = this.state.data;
                 var obj = JSON.parse(msg.body);
                 data[newSymbol] = msg.body;
+
+                // If 1st plot, create new object,
                 if (this.plot === null) {
                     console.log('typeof body ' + typeof msg.body);
                     console.log('Results are ' + obj.results);
                     this.plot = new XYPlot('#plot-div', obj.results);
                 }
                 else {
-                    this.plot.addData(obj.results, 'green');
+                    this.plot.addData(obj.results);
                 }
+
                 this.setState({symbols: symbols, data: data, error: null});
             }
             else {
-                this.setState({error: 'No symbol found.'});
+                this.setState({error: 'Cannot add. msg.body null.'});
             }
         }
         else {
             var index = symbols.indexOf(newSymbol);
-            symbols.splice(index, 1);
-            this.setState({symbols: symbols});
+            if (index >= 0) {
+                symbols.splice(index, 1);
+                this.plot.removePlot(newSymbol);
+                this.setState({symbols: symbols});
+            }
+            else {
+                this.setState({error: 'Cannot delete. No symbol found.'});
+            }
         }
     }
 
+    /* Renders component and all its sub-components.*/
     render() {
 
         var symbolElems = this.state.symbols.map( (item, index) => {
@@ -131,7 +141,6 @@ class StockChart extends React.Component {
         return (
             <div>
                 <div id='plot-div'/>
-                {dataElems}
                 {symbolElems}
                 {errorElem}
 				<input name='input-sym' onChange={this.onChange} />
