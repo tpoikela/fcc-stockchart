@@ -79,6 +79,12 @@ class StockChart extends React.Component {
         var newSymbol = msg.symbol;
         var symbols = this.state.symbols;
 
+        if (!newSymbol) {
+            var err = 'msg.symbol is undefined.';
+            this.setState({error: err});
+            return;
+        }
+
         if (msg.cmd === 'addSym') {
             if (msg.body !== null) {
                 symbols.push(newSymbol);
