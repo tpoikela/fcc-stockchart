@@ -5,6 +5,9 @@ const React = require('react');
 const io = require('socket.io-client');
 const XYPlot = require('../plots/xyplot.js');
 
+/* Component which handles socket communication and instantiates the child
+ * components for stock charting app.
+ */
 class StockChart extends React.Component {
 
     constructor(props) {
@@ -18,16 +21,27 @@ class StockChart extends React.Component {
 
 		this.state = {
             error: null,
-            symbol: null,
+            symbol: null, // Each stock is id'ed by its symbol
             symbols: [],
             data: {}
 		};
     }
 
-    /* Adds one stock symbol for the app. */
+    /* Adds one stock symbol for the app. Produces error message if symbol
+     * already exist. */
     addSym() {
-		var msg = {cmd: 'addSym', symbol: this.state.symbol};
-		this.socket.emit('client message', msg);
+        var symbol = this.state.symbol;
+        if (symbol && symbol.length > 0) {
+            var index = this.state.symbols.indexOf(symbol);
+            if (index < 0) {
+                var msg = {cmd: 'addSym', symbol: symbol};
+                this.socket.emit('client message', msg);
+            }
+            else {
+                var err = 'Symbol ' + symbol + ' already exists.';
+                this.setState({error: err});
+            }
+        }
 
     }
 
@@ -106,7 +120,9 @@ class StockChart extends React.Component {
 
         var errorElem = null;
         if (this.state.error) {
-            errorElem = <p className='text-danger'>{this.state.error}</p>;
+            errorElem = (
+                <p className='text-danger'>ERROR: {this.state.error}</p>
+            );
         }
 
         return (
