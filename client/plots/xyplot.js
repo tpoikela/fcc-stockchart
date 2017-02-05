@@ -266,17 +266,17 @@ class XYPlot {
 
     /* Rescales X axis values.*/
     rescaleX(minDate, maxDate) {
-        var createNewScale = false;
+        var needRescaling = false;
         if (minDate < this.minX) {
             this.minX = minDate;
-            createNewScale = true;
+            needRescaling = true;
         }
         if (maxDate > this.maxX) {
             this.maxX = maxDate;
-            createNewScale = true;
+            needRescaling = true;
         }
 
-        if (createNewScale) {
+        if (needRescaling) {
             this.xScale = d3.scaleTime()
                 .domain([this.minX, this.maxX])
                 .range([0, this.maxWidth]);
@@ -291,30 +291,24 @@ class XYPlot {
 
     /* Rescales Y axis values.*/
     rescaleY(minPrice, maxPrice, force = false) {
-        var createNewScale = false;
+        var needRescaling = false;
         if (!force) {
             if (minPrice < this.minY) {
                 this.minY = minPrice;
-                createNewScale = true;
+                needRescaling = true;
             }
             if (maxPrice > this.maxY) {
                 this.maxY = maxPrice;
-                createNewScale = true;
+                needRescaling = true;
             }
         }
         else {
-            createNewScale = true;
+            needRescaling = true;
         }
 
-        if (createNewScale) {
-            this.yScale = d3.scaleLinear()
-            .domain([this.maxY + 10, this.minY - 10])
-            .range([0, this.maxHeight]);
-
-            this.yAxis.attr('class', 'axis y-axis')
-                .text('price')
-                .call(d3.axisRight(this.yScale));
-
+        if (needRescaling) {
+            this.yScale.domain([this.maxY + 10, this.minY - 10]);
+            this.yAxis.call(d3.axisRight(this.yScale));
         }
 
     }
