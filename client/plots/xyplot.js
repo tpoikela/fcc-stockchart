@@ -4,6 +4,9 @@ const d3 = require('d3');
 class XYPlot {
 
     constructor(elemID, data) {
+        this.data = {};
+        this.colors = ['red', 'blue', 'green', 'cyan', 'brown', 'purple'];
+
         console.log('Constructing the plot now');
         this.elemID = elemID;
         this.priceType = 'high';
@@ -39,11 +42,11 @@ class XYPlot {
 
         var nLastDay = tradingDays.length - 1;
 
-        var firstDay = new Date(tradingDays[0]);
-        var lastDay = new Date(tradingDays[nLastDay]);
+        this.minX = new Date(tradingDays[0]);
+        this.maxX = new Date(tradingDays[nLastDay]);
 
         var xScale = d3.scaleTime()
-            .domain([firstDay, lastDay])
+            .domain([this.minX, this.maxX])
             .range([0, this.maxWidth]);
 
 		var minMaxPrice = this.getMinMaxPrices(data);
@@ -65,12 +68,10 @@ class XYPlot {
                 + margin.top + ')');
 		this.g = g;
 
-        var xAxisY = this.maxHeight;
-
         // Create X-axis
         var xAxis = g.append('g');
         xAxis.attr('class', 'axis x-axis')
-            .attr('transform', 'translate(0, ' + xAxisY + ')')
+            .attr('transform', 'translate(0, ' + this.maxHeight + ')')
             .call(
                 d3.axisBottom(xScale)
             );
@@ -88,7 +89,7 @@ class XYPlot {
         this.xAxis = xAxis;
         this.yAxis = yAxis;
 
-		this.createPlot(g, 'blue', data);
+		this.createPlot(g, this.colors.pop(), data);
 
         // Draw dots
 
@@ -98,9 +99,23 @@ class XYPlot {
         this.chartDiv = chartDiv;
     }
 
+    /* Returns the earliest/latest dates in data.*/
+    getMinMaxDate(data) {
+        var dates = data.map( item => {
+            var date = item.tradingDay;
+            return date;
+        });
+
+        var nLast = dates.length - 1;
+        var min = new Date(dates[0]);
+        var max = new Date(dates[nLast]);
+
+        return [min, max];
+    }
+
     /* Returns min and max price in the data.*/
 	getMinMaxPrices(data) {
-        var prices = data.map( (item) => {
+        var prices = data.map( item => {
             var price = parseFloat(item[this.priceType]);
             return price;
         });
@@ -111,57 +126,71 @@ class XYPlot {
 		return [minPrice, maxPrice];
 	}
 
-    dayToInt(day) {
-        day = day.replace(/-/g, '');
-        day = parseInt(day, 10);
-        return day;
-    }
-
     /* Adds a new dataset to the plot.*/
-	addData(data, color) {
-		this.createPlot(this.g, color, data);
+	addData(data) {
+        var symbol = data[0].symbol;
+        if (!this.data.hasOwnProperty(symbol)) {
+            this.createPlot(this.g, this.colors.pop(), data);
+        }
+        else {
+            console.error('Symbol ' + symbol + ' already exists.');
+        }
 	}
 
     /* Removes a plot with the given symbol.*/
     removePlot(symbol) {
-        this.g.select('.plot-line-' + symbol)
-            .remove();
+        if (this.data.hasOwnProperty(symbol)) {
+            this.g.select('.plot-line-' + symbol)
+                .remove();
 
-        this.g.selectAll('.price-point-' + symbol)
-            .remove();
+            this.g.selectAll('.price-point-' + symbol)
+                .remove();
+
+            // Finally, add the used color back, and remove symbol data
+            var color = this.data[symbol].color;
+            this.colors.push(color);
+            delete this.data[symbol];
+
+            // TODO add scaling of x/y-domain
+            this.minY = this.getGlobalMinY();
+            this.maxY = this.getGlobalMaxY();
+
+            this.rescaleY(this.minY, this.maxY);
+
+        }
+        else {
+            console.error('No symbol. Cannot remove ' + symbol);
+        }
+
     }
 
 	createPlot(g, color, data) {
 
         var symbol = data[0].symbol;
+        console.log('createPlot for symbol ' + symbol);
         if (!symbol) {
             throw new Error('No symbol found in data.');
         }
+
+        var minMaxDate = this.getMinMaxDate(data);
+        var minDate = minMaxDate[0];
+        var maxDate = minMaxDate[1];
 
         var minMaxPrice = this.getMinMaxPrices(data);
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
 
-        var createNewScale = false;
-        if (minPrice < this.minY) {
-            this.minY = minPrice;
-            createNewScale = true;
-        }
-        if (maxPrice > this.maxY) {
-            this.maxY = maxPrice;
-            createNewScale = true;
-        }
+        this.data[symbol] = {
+            data: data,
+            minX: minDate,
+            maxX: maxDate,
+            minY: minPrice,
+            maxY: maxPrice,
+            color: color
+        };
 
-        if (createNewScale) {
-            this.yScale = d3.scaleLinear()
-            .domain([this.maxY + 10, this.minY - 10])
-            .range([0, this.maxHeight]);
-
-            this.yAxis.attr('class', 'axis y-axis')
-                .text('price')
-                .call(d3.axisRight(this.yScale));
-
-        }
+        this.rescaleX(minDate, maxDate);
+        this.rescaleY(minPrice, maxPrice);
 
 		var plotLine = d3.line()
 			.x( d => {
@@ -197,7 +226,98 @@ class XYPlot {
                 })
                 .style('fill', color);
 
+        console.log('Finished createPlot for symbol ' + symbol);
+
 	}
+
+    /* Rescales X axis values.*/
+    rescaleX(minDate, maxDate) {
+        var createNewScale = false;
+        if (minDate < this.minX) {
+            this.minX = minDate;
+            createNewScale = true;
+        }
+        if (maxDate > this.maxX) {
+            this.maxX = maxDate;
+            createNewScale = true;
+        }
+
+        if (createNewScale) {
+            this.xScale = d3.scaleTime()
+                .domain([this.minX, this.maxX])
+                .range([0, this.maxWidth]);
+            this.xAxis.attr('class', 'axis x-axis')
+                .attr('transform', 'translate(0, ' + this.maxHeight + ')')
+                .call(
+                    d3.axisBottom(this.xScale)
+                );
+        }
+
+    }
+
+    /* Rescales Y axis values.*/
+    rescaleY(minPrice, maxPrice, force = false) {
+        var createNewScale = false;
+        if (!force) {
+            if (minPrice < this.minY) {
+                this.minY = minPrice;
+                createNewScale = true;
+            }
+            if (maxPrice > this.maxY) {
+                this.maxY = maxPrice;
+                createNewScale = true;
+            }
+        }
+        else {
+            createNewScale = true;
+        }
+
+        if (createNewScale) {
+            this.yScale = d3.scaleLinear()
+            .domain([this.maxY + 10, this.minY - 10])
+            .range([0, this.maxHeight]);
+
+            this.yAxis.attr('class', 'axis y-axis')
+                .text('price')
+                .call(d3.axisRight(this.yScale));
+
+        }
+
+    }
+
+    /* Returns the smallest Y-value in all datasets.*/
+    getGlobalMinY() {
+        var minY = 0;
+        var symbols = Object.keys(this.data);
+        symbols.forEach( (item, index) => {
+            var obj = this.data[item];
+            if (index === 0) {
+                minY = obj.minY;
+            }
+            else if (obj.minY < minY) {
+                minY = obj.minY;
+            }
+
+        });
+        return minY;
+    }
+
+    /* Returns the largest Y-value in all datasets.*/
+    getGlobalMaxY() {
+        var maxY = 0;
+        var symbols = Object.keys(this.data);
+        symbols.forEach( (item, index) => {
+            var obj = this.data[item];
+            if (index === 0) {
+                maxY = obj.maxY;
+            }
+            else if (obj.maxY < maxY) {
+                maxY = obj.maxY;
+            }
+
+        });
+        return maxY;
+    }
 
 }
 
