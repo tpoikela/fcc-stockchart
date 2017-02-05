@@ -131,6 +131,14 @@ class XYPlot {
         var symbol = data[0].symbol;
         if (!this.data.hasOwnProperty(symbol)) {
             this.createPlot(this.g, this.colors.pop(), data);
+
+            // Refresh existing plots (if scales have changed)
+            var symbols = Object.keys(this.data);
+            symbols.forEach( (sym) => {
+                if (sym !== symbol) {
+                    this.redrawPlot(sym);
+                }
+            });
         }
         else {
             console.error('Symbol ' + symbol + ' already exists.');
@@ -155,7 +163,14 @@ class XYPlot {
             this.minY = this.getGlobalMinY();
             this.maxY = this.getGlobalMaxY();
 
-            this.rescaleY(this.minY, this.maxY);
+            this.rescaleY(this.minY, this.maxY, true);
+
+            var symbols = Object.keys(this.data);
+            symbols.forEach( (sym) => {
+                if (sym !== symbol) {
+                    this.redrawPlot(sym);
+                }
+            });
 
         }
         else {
@@ -189,9 +204,20 @@ class XYPlot {
             color: color
         };
 
-        this.rescaleX(minDate, maxDate);
-        this.rescaleY(minPrice, maxPrice);
+        var nSyms = Object.keys(this.data).length;
+        var force = nSyms === 1;
+        if (force) {
+            this.minY = minPrice;
+            this.maxY = maxPrice;
+        }
 
+        this.rescaleX(minDate, maxDate);
+        this.rescaleY(minPrice, maxPrice, force);
+        this.drawPlot(g, symbol, data, color);
+        console.log('Finished createPlot for symbol ' + symbol);
+	}
+
+    drawPlot(g, symbol, data, color) {
 		var plotLine = d3.line()
 			.x( d => {
 				return this.xScale(new Date(d.tradingDay));
@@ -226,9 +252,17 @@ class XYPlot {
                 })
                 .style('fill', color);
 
-        console.log('Finished createPlot for symbol ' + symbol);
+    }
 
-	}
+    /* Redraws a plot. Clears the GUI elements and updates them.*/
+    redrawPlot(symbol) {
+        var data = this.data[symbol].data;
+        var color = this.data[symbol].color;
+        var g = this.g;
+        g.select('.plot-line-' + symbol).remove();
+        g.selectAll('.price-point-' + symbol).remove();
+        this.drawPlot(g, symbol, data, color);
+    }
 
     /* Rescales X axis values.*/
     rescaleX(minDate, maxDate) {
