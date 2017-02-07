@@ -4,6 +4,8 @@
 const React = require('react');
 const io = require('socket.io-client');
 const XYPlot = require('../plots/xyplot.js');
+const TimeSpanElem = require('./time-span-elem.jsx');
+
 
 /* Component which handles socket communication and instantiates the child
  * components for stock charting app.
@@ -16,6 +18,7 @@ class StockChart extends React.Component {
 		this.onClickAdd = this.onClickAdd .bind(this);
 		this.onClickDelete = this.onClickDelete.bind(this);
 		this.onChange = this.onChange.bind(this);
+        this.changeTimeSpan = this.changeTimeSpan.bind(this);
 
         this.plot = null;
 
@@ -122,6 +125,14 @@ class StockChart extends React.Component {
         }
     }
 
+    changeTimeSpan(e) {
+        var btn = e.target;
+        var text = btn.textContent;
+        console.log('Changing time span to ' + text);
+        this.plot.setRangeX(text);
+        this.setState({msg: 'Range updated.'});
+    }
+
     /* Renders component and all its sub-components.*/
     render() {
 
@@ -146,6 +157,7 @@ class StockChart extends React.Component {
 
         return (
             <div>
+                <TimeSpanElem onClick={this.changeTimeSpan}/>
                 <div id='plot-div'/>
                 {symbolElems}
                 {errorElem}
