@@ -91,10 +91,6 @@ class XYPlot {
 
 		this.createPlot(g, this.colors.pop(), data);
 
-        // Draw dots
-
-        // Draw lines between dots
-
         this.svg = svg;
         this.chartDiv = chartDiv;
     }
@@ -179,6 +175,36 @@ class XYPlot {
 
     }
 
+    /* Sets the X-axis range.*/
+    setRangeX(range) {
+        var dateNow = new Date();
+        var nowMs = dateNow.getTime();
+        var msPerDay = 24 * 3600 * 1000;
+        var startDateMs = -1;
+
+        switch (range) {
+            case '1m': startDateMs = nowMs - 30 * msPerDay; break;
+            case '3m': startDateMs = nowMs - 90 * msPerDay; break;
+            case '6m': startDateMs = nowMs - 180 * msPerDay; break;
+            case '1y': startDateMs = nowMs - 365 * msPerDay; break;
+            default: console.error('Incorrect range format: ' + range);
+        }
+
+        var startDate = new Date();
+        startDate.setTime(startDateMs);
+        this.minX = startDate;
+        this.maxX = dateNow;
+        this.rescaleX(startDate, dateNow, true);
+
+        // Refresh all existing plots
+        var symbols = Object.keys(this.data);
+        symbols.forEach( (sym) => {
+            this.redrawPlot(sym);
+        });
+
+    }
+
+    /* Creates a plot into 'g' using specified color and data.*/
 	createPlot(g, color, data) {
 
         var symbol = data[0].symbol;
@@ -195,6 +221,7 @@ class XYPlot {
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
 
+        // Store data for this symbol for later reference
         this.data[symbol] = {
             data: data,
             minX: minDate,
@@ -217,6 +244,8 @@ class XYPlot {
         console.log('Finished createPlot for symbol ' + symbol);
 	}
 
+    /* Draws plot for 'symbol' using given data. Doesn't clear previous
+     * plots.*/
     drawPlot(g, symbol, data, color) {
 		var plotLine = d3.line()
 			.x( d => {
@@ -265,14 +294,19 @@ class XYPlot {
     }
 
     /* Rescales X axis values.*/
-    rescaleX(minDate, maxDate) {
+    rescaleX(minDate, maxDate, force = false) {
         var needRescaling = false;
-        if (minDate < this.minX) {
-            this.minX = minDate;
-            needRescaling = true;
+        if (!force) {
+            if (minDate < this.minX) {
+                this.minX = minDate;
+                needRescaling = true;
+            }
+            if (maxDate > this.maxX) {
+                this.maxX = maxDate;
+                needRescaling = true;
+            }
         }
-        if (maxDate > this.maxX) {
-            this.maxX = maxDate;
+        else {
             needRescaling = true;
         }
 
