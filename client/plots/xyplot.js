@@ -49,7 +49,7 @@ class XYPlot {
             .domain([this.minX, this.maxX])
             .range([0, this.maxWidth]);
 
-		var minMaxPrice = this.getMinMaxPrices(data);
+		var minMaxPrice = this.getMinMaxY(data);
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
         this.minY = minPrice;
@@ -109,8 +109,8 @@ class XYPlot {
         return [min, max];
     }
 
-    /* Returns min and max price in the data.*/
-	getMinMaxPrices(data) {
+    /* Returns min and max Y value in the data.*/
+	getMinMaxY(data) {
         var prices = data.map( item => {
             var price = parseFloat(item[this.priceType]);
             return price;
@@ -175,6 +175,37 @@ class XYPlot {
 
     }
 
+    /* Chooses between growth/absolute stock prices.*/
+    setAxisTypeY(type) {
+        if (type === 'growth') {
+            if (this.priceType !== 'growth') {
+                var minDate = this.minX;
+                this.computeGrowthRates(minDate);
+                this.priceType = 'growth';
+            }
+        }
+        else {
+            this.priceType = type;
+
+            var symbols = Object.keys(this.data);
+            symbols.forEach( (sym) => {
+                var minMax = this.getMinMaxY(this.data[sym].data);
+                this.data[sym].minY = minMax[0];
+                this.data[sym].maxY = minMax[1];
+            });
+
+        }
+
+        var minY = this.getGlobalMinY();
+        var maxY = this.getGlobalMaxY();
+        console.log('setAxisTypeY new global min ' + minY + ' max ' + maxY);
+        this.minY = minY;
+        this.maxY = maxY;
+        this.rescaleY(minY, maxY, true);
+        this.redrawAllPlots();
+
+    }
+
     /* Sets the X-axis range.*/
     setRangeX(range) {
         var dateNow = new Date();
@@ -195,13 +226,16 @@ class XYPlot {
         this.minX = startDate;
         this.maxX = dateNow;
         this.rescaleX(startDate, dateNow, true);
+        this.redrawAllPlots();
 
+    }
+
+    redrawAllPlots() {
         // Refresh all existing plots
         var symbols = Object.keys(this.data);
         symbols.forEach( (sym) => {
             this.redrawPlot(sym);
         });
-
     }
 
     /* Creates a plot into 'g' using specified color and data.*/
@@ -217,7 +251,7 @@ class XYPlot {
         var minDate = minMaxDate[0];
         var maxDate = minMaxDate[1];
 
-        var minMaxPrice = this.getMinMaxPrices(data);
+        var minMaxPrice = this.getMinMaxY(data);
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
 
@@ -373,12 +407,76 @@ class XYPlot {
             if (index === 0) {
                 maxY = obj.maxY;
             }
-            else if (obj.maxY < maxY) {
+            else if (obj.maxY > maxY) {
                 maxY = obj.maxY;
             }
 
         });
         return maxY;
+    }
+
+    /* Computes growth rates from given date to today.*/
+    computeGrowthRates(minDate) {
+        var type = this.priceType;
+        var symbols = Object.keys(this.data);
+        this.adjustWeekendDate(minDate);
+
+        symbols.forEach( (symbol) => {
+            var dataPerSymbol = this.data[symbol].data;
+            var indexFound = this.getDateIndex(minDate, dataPerSymbol);
+
+            console.log('Found index ' + indexFound + ' for date ' + minDate);
+            var startPrice = dataPerSymbol[indexFound][type];
+            console.log('Starting price is ' + startPrice);
+
+            var i = 0;
+
+            var minGrowth = 0;
+            var maxGrowth = 0;
+
+            // Compute min/max rates and daily growth rates until today
+            for (i = indexFound; i < dataPerSymbol.length; i++) {
+                var price = dataPerSymbol[i][type];
+                var growth = 100 * (price / startPrice) - 100;
+                dataPerSymbol[i].growth = growth;
+
+                console.log('Growth rate is ' + growth);
+
+                if (i === indexFound) {
+                    minGrowth = growth;
+                    maxGrowth = growth;
+                }
+                else if (growth < minGrowth) {
+                    minGrowth = growth;
+                }
+                else if (growth > maxGrowth) {
+                    maxGrowth = growth;
+                }
+            }
+            this.data[symbol].minY = minGrowth;
+            this.data[symbol].maxY = maxGrowth;
+
+        });
+
+    }
+
+
+    adjustWeekendDate(date) {
+        if (date.getDay() === 0) {
+            date.setTime(date.getTime() + 24 * 3600 * 1000);
+        }
+        else if (date.getDay() === 6) {
+            date.setTime(date.getTime() - 24 * 3600 * 1000);
+        }
+    }
+
+    /* Returns the index of given date for the data.*/
+    getDateIndex(minDate, data) {
+        var minDateStr = minDate.toDateString();
+        return data.findIndex( elem => {
+            var tradeDate = new Date(elem.tradingDay);
+            return tradeDate.toDateString() === minDateStr;
+        });
     }
 
 }

@@ -19,6 +19,7 @@ class StockChart extends React.Component {
 		this.onClickDelete = this.onClickDelete.bind(this);
 		this.onChange = this.onChange.bind(this);
         this.changeTimeSpan = this.changeTimeSpan.bind(this);
+        this.setAxisTypeY = this.setAxisTypeY.bind(this);
 
         this.plot = null;
 
@@ -133,6 +134,14 @@ class StockChart extends React.Component {
         this.setState({msg: 'Range updated.'});
     }
 
+    setAxisTypeY(e) {
+        var btn = e.target;
+        var text = btn.textContent;
+        console.log('Changing Y axis to ' + text);
+        this.plot.setAxisTypeY(text);
+        this.setState({msg: 'Range updated.'});
+    }
+
     /* Renders component and all its sub-components.*/
     render() {
 
@@ -158,6 +167,9 @@ class StockChart extends React.Component {
         return (
             <div>
                 <TimeSpanElem onClick={this.changeTimeSpan}/>
+                <button onClick={this.setAxisTypeY}>growth</button>
+                <button onClick={this.setAxisTypeY}>high</button>
+                <button onClick={this.setAxisTypeY}>low</button>
                 <div id='plot-div'/>
                 {symbolElems}
                 {errorElem}
