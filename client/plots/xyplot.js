@@ -77,11 +77,13 @@ class XYPlot {
             );
 
         // Create Y-axis
+        var yAxisLeft = this.maxWidth;
         var yAxis = g.append('g');
         yAxis.attr('class', 'axis y-axis')
             .text('price')
-            .call(d3.axisRight(yScale)
-        );
+            .attr('transform', 'translate(' + yAxisLeft + ','
+                + '0' + ')')
+            .call(d3.axisRight(yScale));
 
 		// Store axes and scales for other functions
         this.xScale = xScale;
@@ -375,7 +377,9 @@ class XYPlot {
         }
 
         if (needRescaling) {
-            this.yScale.domain([this.maxY + 10, this.minY - 10]);
+            var maxY = this.maxY + 0.10 * this.maxY;
+            var minY = this.minY - 0.10 * this.minY;
+            this.yScale.domain([maxY, minY]);
             this.yAxis.call(d3.axisRight(this.yScale));
         }
 
