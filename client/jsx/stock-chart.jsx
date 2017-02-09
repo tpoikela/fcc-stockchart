@@ -92,7 +92,6 @@ class StockChart extends React.Component {
         if (msg.cmd === 'addSym') {
             if (msg.body !== null) {
                 symbols.push(newSymbol);
-                console.log('Got body: ' + msg.body);
                 var data = this.state.data;
                 var obj = JSON.parse(msg.body);
                 data[newSymbol] = msg.body;
@@ -100,7 +99,6 @@ class StockChart extends React.Component {
                 // If 1st plot, create new object,
                 if (this.plot === null) {
                     console.log('typeof body ' + typeof msg.body);
-                    console.log('Results are ' + obj.results);
                     this.plot = new XYPlot('#plot-div', obj.results);
                 }
                 else {

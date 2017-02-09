@@ -12,7 +12,7 @@ class XYPlot {
         this.priceType = 'high';
 
         var maxWidth = 1000;
-        var maxHeight = 560;
+        var maxHeight = 700;
         var margin = {top: 10, left: 10, right: 10, bottom: 20};
 
         var chartDiv = d3.select(elemID);
@@ -228,6 +228,16 @@ class XYPlot {
         this.minX = startDate;
         this.maxX = dateNow;
         this.rescaleX(startDate, dateNow, true);
+
+        if (this.priceType === 'growth') {
+            this.computeGrowthRates(this.minX);
+            var minY = this.getGlobalMinY();
+            var maxY = this.getGlobalMaxY();
+            console.log('setAxisTypeY new global min ' + minY + ' max ' + maxY);
+            this.minY = minY;
+            this.maxY = maxY;
+            this.rescaleY(minY, maxY, true);
+        }
         this.redrawAllPlots();
 
     }
@@ -435,6 +445,12 @@ class XYPlot {
 
             var i = 0;
 
+            dataPerSymbol.forEach( item => {
+                if (item.hasOwnProperty('growth')) {
+                    delete item.growth;
+                }
+            });
+
             var minGrowth = 0;
             var maxGrowth = 0;
 
@@ -443,8 +459,6 @@ class XYPlot {
                 var price = dataPerSymbol[i][type];
                 var growth = 100 * (price / startPrice) - 100;
                 dataPerSymbol[i].growth = growth;
-
-                console.log('Growth rate is ' + growth);
 
                 if (i === indexFound) {
                     minGrowth = growth;
