@@ -5,7 +5,7 @@ const React = require('react');
 const io = require('socket.io-client');
 const XYPlot = require('../plots/xyplot.js');
 const TimeSpanElem = require('./time-span-elem.jsx');
-
+const PriceTypeElem = require('./price-type-elem.jsx');
 
 /* Component which handles socket communication and instantiates the child
  * components for stock charting app.
@@ -165,9 +165,8 @@ class StockChart extends React.Component {
         return (
             <div>
                 <TimeSpanElem onClick={this.changeTimeSpan}/>
-                <button onClick={this.setAxisTypeY}>growth</button>
-                <button onClick={this.setAxisTypeY}>high</button>
-                <button onClick={this.setAxisTypeY}>low</button>
+                <PriceTypeElem onClick={this.setAxisTypeY}/>
+
                 <div id='plot-div'/>
                 {symbolElems}
                 {errorElem}
