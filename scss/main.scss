@@ -1,11 +1,22 @@
 
+$bg-color: #EEEEEE;
 
-
-
-
+.temp-tooltip {
+    background-color: transparentize($bg-color, 0.3);
+    padding: 3px;
+}
 
 .sym-elem {
+    margin-right: 5px;
     padding: 10px;
     border: 1px solid black;
     display: inline-block;
+}
+
+.sym-elem-btn {
+    margin-left: 3px;
+}
+
+.input-sym {
+    margin-top: 5px;
 }
