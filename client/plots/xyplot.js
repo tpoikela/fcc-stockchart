@@ -137,20 +137,25 @@ class XYPlot {
 
     /* Adds a new dataset to the plot.*/
 	addData(data) {
-        var symbol = data[0].symbol;
-        if (!this.data.hasOwnProperty(symbol)) {
-            this.createPlot(this.g, this.colors.pop(), data);
+        if (data && data.length > 0) {
+            var symbol = data[0].symbol;
+            if (!this.data.hasOwnProperty(symbol)) {
+                this.createPlot(this.g, this.colors.pop(), data);
 
-            // Refresh existing plots (if scales have changed)
-            var symbols = Object.keys(this.data);
-            symbols.forEach( (sym) => {
-                if (sym !== symbol) {
-                    this.redrawPlot(sym);
-                }
-            });
+                // Refresh existing plots (if scales have changed)
+                var symbols = Object.keys(this.data);
+                symbols.forEach( (sym) => {
+                    if (sym !== symbol) {
+                        this.redrawPlot(sym);
+                    }
+                });
+            }
+            else {
+                console.error('Symbol ' + symbol + ' already exists.');
+            }
         }
         else {
-            console.error('Symbol ' + symbol + ' already exists.');
+            console.error('ERROR. data length is 0');
         }
 	}
 
