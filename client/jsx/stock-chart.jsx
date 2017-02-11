@@ -49,7 +49,7 @@ class StockChart extends React.Component {
 
     }
 
-    /* Deletes a plot.*/
+    /* Deletes a plot and its data. Sends message to the server. */
     onClickDelete(e) {
         var elem = e.target;
         var symID = elem.getAttribute('id');
@@ -146,9 +146,9 @@ class StockChart extends React.Component {
         var symbolElems = this.state.symbols.map( (item, index) => {
             return (
                 <div className='sym-elem' key={index}>
-                    Symbol: {item}
+                    {item}
                     <button id={item} onClick={this.onClickDelete}>
-                        Delete
+                        X
                     </button>
                 </div>
 
@@ -168,7 +168,9 @@ class StockChart extends React.Component {
                 <PriceTypeElem onClick={this.setAxisTypeY}/>
 
                 <div id='plot-div'/>
-                {symbolElems}
+                <div className='sym-elems-div'>
+                    {symbolElems}
+                </div>
                 {errorElem}
 				<input name='input-sym' onChange={this.onChange} />
 				<button onClick={this.onClickAdd}>Add</button>
