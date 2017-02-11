@@ -11,6 +11,7 @@ class XYPlot {
         this.elemID = elemID;
         this.priceType = 'high';
 
+        this.circleRadius = 5;
         this.maxWidth = 1000;
         this.maxHeight = 360;
         var margin = {top: 10, left: 10, right: 10, bottom: 20};
@@ -219,14 +220,29 @@ class XYPlot {
         var msPerDay = 24 * 3600 * 1000;
         var startDateMs = -1;
 
+        // Compute startDate in millisecond and adjust circle radius based on
+        // the selected time span
         switch (range) {
-            case '1m': startDateMs = nowMs - 30 * msPerDay; break;
-            case '3m': startDateMs = nowMs - 90 * msPerDay; break;
-            case '6m': startDateMs = nowMs - 180 * msPerDay; break;
-            case '1y': startDateMs = nowMs - 365 * msPerDay; break;
+            case '1m':
+                startDateMs = nowMs - 30 * msPerDay;
+                this.circleRadius = 5;
+                break;
+            case '3m':
+                startDateMs = nowMs - 90 * msPerDay;
+                this.circleRadius = 4;
+                break;
+            case '6m':
+                startDateMs = nowMs - 180 * msPerDay;
+                this.circleRadius = 3;
+                break;
+            case '1y':
+                startDateMs = nowMs - 365 * msPerDay;
+                this.circleRadius = 3;
+                break;
             default: console.error('Incorrect range format: ' + range);
         }
 
+        // Set min/max date and scale X-axis using those values
         var startDate = new Date();
         startDate.setTime(startDateMs);
         this.minX = startDate;
@@ -234,19 +250,14 @@ class XYPlot {
         this.rescaleX(startDate, dateNow, true);
 
         if (this.priceType === 'growth') {
-            console.log('Recomputing growth rates from ' + this.minX);
             this.computeGrowthRates(this.minX);
             var minY = this.getGlobalMinY();
             var maxY = this.getGlobalMaxY();
-            console.log('setAxisTypeY new global growth min ' + minY + ' max '
-                + maxY);
             this.minY = minY;
             this.maxY = maxY;
             this.rescaleY(minY, maxY, true);
         }
-        else {
-            console.log('Price is not growth: ' + this.priceType);
-        }
+
         this.redrawAllPlots();
 
     }
@@ -308,13 +319,14 @@ class XYPlot {
 				return this.xScale(new Date(d.tradingDay));
 			})
 			.y( d => {
-                if (this.yScale(d[this.priceType])) {
+                if (d.hasOwnProperty(this.priceType)) {
                     return this.yScale(d[this.priceType]);
                 }
                 else {
                     return 0;
                 }
 		});
+
 
 		// Add the path for the plot
 		g.append('path')
@@ -325,22 +337,60 @@ class XYPlot {
 			.style('stroke', color)
 			.attr('d', plotLine);
 
-        g.selectAll('.randomValueXX')
+        g.selectAll('.putAnythingYouWantHere')
             .data(data).enter()
             .append('circle')
                 .attr('class', 'price-point ' + 'price-point-' + symbol)
-                .attr('r', 5)
-                .attr('cx', (d) => {
+                .attr('r', this.circleRadius)
+                .attr('cx', d => {
                     var day = new Date(d.tradingDay);
                     var cx = this.xScale(day);
                     return cx;
                 })
-                .attr('cy', (d) => {
-                    var price = d[this.priceType];
-                    var cy = this.yScale(price);
-                    return cy;
+                .attr('cy', d => {
+                    var yValue = d[this.priceType];
+                    if (yValue) {
+                        var cy = this.yScale(yValue);
+                        if (cy) {
+                            return cy;
+                        }
+                        else {
+                            return 0;
+                        }
+                    }
+                    else {
+                        return 0;
+                    }
                 })
                 .style('fill', color);
+
+                // Needed for showing/hiding the tooltip
+                /*
+                .on("mouseover", function(d, i) {
+                    var tooltipHTML = getTooltipHTML(d, baseTemp);
+                    tooltip.html(tooltipHTML);
+                    return tooltip.style("visibility", "visible");
+                })
+
+                .on("mousemove", function(d, i) {
+                    var x = d3.event.pageX;
+                    var y = d3.event.pageY;
+                    if (d.year < 1990) {
+                        return tooltip
+                            .style("top", (y-10)+"px")
+                            .style("left",(x+10)+"px");
+                    }
+                    else {
+                        return tooltip
+                            .style("top", (y-10)+"px")
+                            .style("left",(x-120)+"px");
+                    }
+                })
+
+                .on("mouseout", function(){
+                    return tooltip.style("visibility", "hidden");
+                });
+                */
 
     }
 
@@ -511,6 +561,28 @@ class XYPlot {
             return tradeDate.toDateString() === minDateStr;
         });
     }
+
+
+    /*
+    this.tooltip = d3.select("body")
+        .append("div")
+        .classed("temp-tooltip", true)
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("visibility", "hidden");
+    */
+
+    /** Formats the HTML for tooltip based on the weather data.*/
+    /*
+    var getTooltipHTML = function(d, baseTemp) {
+        var html = '<p>';
+        html += "Month: " + numToMonth[parseInt(d.month)] + '<br/>';
+        html += "Year: " + d.year + '<br/>';
+        html += " Temp: " + (baseTemp + parseFloat(d.variance)).toFixed(2);
+        html += '</p>';
+        return html;
+    };
+    */
 
 }
 
