@@ -84,7 +84,7 @@ class StockChart extends React.Component {
         var symbols = this.state.symbols;
 
         if (!newSymbol) {
-            var err = 'msg.symbol is undefined.';
+            var err = 'Symbol was not found.';
             this.setState({error: err});
             return;
         }
@@ -98,7 +98,6 @@ class StockChart extends React.Component {
 
                 // If 1st plot, create new object,
                 if (this.plot === null) {
-                    console.log('typeof body ' + typeof msg.body);
                     this.plot = new XYPlot('#plot-div', obj.results);
                 }
                 else {
