@@ -144,14 +144,17 @@ class StockChart extends React.Component {
     render() {
 
         var symbolElems = this.state.symbols.map( (item, index) => {
+            var colorName = this.plot.getColor(item);
+            var colorStyle = {color: colorName, fontWeight: 900, fontSize: 40};
             return (
                 <div className='sym-elem' key={index}>
-                    {item}
-                    <button id={item} onClick={this.onClickDelete}>
+                    {item} <span style={colorStyle}>--</span>
+                    <button className='sym-elem-btn' id={item}
+                        onClick={this.onClickDelete}
+                        >
                         X
                     </button>
                 </div>
-
             );
         });
 
@@ -172,7 +175,9 @@ class StockChart extends React.Component {
                     {symbolElems}
                 </div>
                 {errorElem}
-				<input name='input-sym' onChange={this.onChange} />
+                <input className='input-sym' name='input-sym'
+                    onChange={this.onChange}
+                />
 				<button onClick={this.onClickAdd}>Add</button>
             </div>
         );
