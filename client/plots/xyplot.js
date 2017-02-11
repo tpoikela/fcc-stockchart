@@ -99,6 +99,13 @@ class XYPlot {
 
 		this.createPlot(g, this.colors.pop(), data);
 
+        this.tooltip = d3.select('body')
+            .append('div')
+            .classed('temp-tooltip', true)
+            .style('position', 'absolute')
+            .style('z-index', '10')
+            .style('visibility', 'hidden');
+
     }
 
     /* Returns the earliest/latest dates in data.*/
@@ -311,6 +318,16 @@ class XYPlot {
         console.log('Finished createPlot for symbol ' + symbol);
 	}
 
+    getColor(symbol) {
+        if (this.data.hasOwnProperty(symbol)) {
+            return this.data[symbol].color;
+        }
+        else {
+            console.error('Symbol ' + symbol + ' does not exist.');
+        }
+        return null;
+    }
+
     /* Draws plot for 'symbol' using given data. Doesn't clear previous
      * plots.*/
     drawPlot(g, symbol, data, color) {
@@ -362,35 +379,25 @@ class XYPlot {
                         return 0;
                     }
                 })
-                .style('fill', color);
+                .style('fill', color)
 
                 // Needed for showing/hiding the tooltip
-                /*
-                .on("mouseover", function(d, i) {
-                    var tooltipHTML = getTooltipHTML(d, baseTemp);
-                    tooltip.html(tooltipHTML);
-                    return tooltip.style("visibility", "visible");
+                .on('mouseover', d => {
+                    var tooltipHTML = this.getTooltipHTML(d);
+                    this.tooltip.html(tooltipHTML);
+                    return this.tooltip.style('visibility', 'visible');
                 })
 
-                .on("mousemove", function(d, i) {
+                .on('mousemove', () => {
                     var x = d3.event.pageX;
                     var y = d3.event.pageY;
-                    if (d.year < 1990) {
-                        return tooltip
-                            .style("top", (y-10)+"px")
-                            .style("left",(x+10)+"px");
-                    }
-                    else {
-                        return tooltip
-                            .style("top", (y-10)+"px")
-                            .style("left",(x-120)+"px");
-                    }
+                        return this.tooltip
+                            .style('top', (y - 10) + 'px')
+                            .style('left', (x + 10) + 'px');
                 })
-
-                .on("mouseout", function(){
-                    return tooltip.style("visibility", "hidden");
+                .on('mouseout', () => {
+                    return this.tooltip.style('visibility', 'hidden');
                 });
-                */
 
     }
 
@@ -562,27 +569,15 @@ class XYPlot {
         });
     }
 
-
-    /*
-    this.tooltip = d3.select("body")
-        .append("div")
-        .classed("temp-tooltip", true)
-        .style("position", "absolute")
-        .style("z-index", "10")
-        .style("visibility", "hidden");
-    */
-
-    /** Formats the HTML for tooltip based on the weather data.*/
-    /*
-    var getTooltipHTML = function(d, baseTemp) {
+    /* Formats the HTML for tooltip based on the weather data.*/
+    getTooltipHTML(d) {
         var html = '<p>';
-        html += "Month: " + numToMonth[parseInt(d.month)] + '<br/>';
-        html += "Year: " + d.year + '<br/>';
-        html += " Temp: " + (baseTemp + parseFloat(d.variance)).toFixed(2);
+        html += 'Trading day: ' + d.tradingDay + '<br/>';
+        html += 'High: ' + d.high + '<br/>';
+        html += 'Low: ' + d.low + '<br/>';
         html += '</p>';
         return html;
-    };
-    */
+    }
 
 }
 
