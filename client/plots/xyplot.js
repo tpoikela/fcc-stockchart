@@ -181,6 +181,7 @@ class XYPlot {
     setAxisTypeY(type) {
         if (type === 'growth') {
             if (this.priceType !== 'growth') {
+                this.growthForType = this.priceType;
                 var minDate = this.minX;
                 this.computeGrowthRates(minDate);
                 this.priceType = 'growth';
@@ -230,13 +231,18 @@ class XYPlot {
         this.rescaleX(startDate, dateNow, true);
 
         if (this.priceType === 'growth') {
+            console.log('Recomputing growth rates from ' + this.minX);
             this.computeGrowthRates(this.minX);
             var minY = this.getGlobalMinY();
             var maxY = this.getGlobalMaxY();
-            console.log('setAxisTypeY new global min ' + minY + ' max ' + maxY);
+            console.log('setAxisTypeY new global growth min ' + minY + ' max '
+                + maxY);
             this.minY = minY;
             this.maxY = maxY;
             this.rescaleY(minY, maxY, true);
+        }
+        else {
+            console.log('Price is not growth: ' + this.priceType);
         }
         this.redrawAllPlots();
 
@@ -431,7 +437,7 @@ class XYPlot {
 
     /* Computes growth rates from given date to today.*/
     computeGrowthRates(minDate) {
-        var type = this.priceType;
+        var type = this.growthForType;
         var symbols = Object.keys(this.data);
         this.adjustWeekendDate(minDate);
 
