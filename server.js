@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
 
 /* Process addSym/delSym commands from clients.*/
 function processClientMsg(msg) {
-    console.log('Server got message: ' + msg);
+    console.log('Server got message: ' + JSON.stringify(msg));
     if (msg.cmd === 'addSym') {
         var startDate = getStartDate(372);
         var query = {
@@ -95,10 +95,21 @@ function processClientMsg(msg) {
                 io.emit('server message', {error: 'An error occurred.'});
             }
             else {
-                var newMsg = Object.assign({}, msg);
-                newMsg.body = body;
-                io.emit('server message', newMsg);
-                stockData[msg.symbol] = newMsg.body;
+                var bodyObj = JSON.parse(body);
+                console.log(JSON.stringify(body));
+                console.log('Response status.code: ' + bodyObj.status.code);
+                var code = bodyObj.status.code;
+                if (code === 200) {
+                    var newMsg = Object.assign({}, msg);
+                    newMsg.body = body;
+                    io.emit('server message', newMsg);
+                    stockData[msg.symbol] = newMsg.body;
+                }
+                else if (code === 204) {
+                    var errorMsg = {error: 'No symbol ' + msg.symbol
+                        + ' found.'};
+                    io.emit('server message', errorMsg );
+                }
             }
 
         });
