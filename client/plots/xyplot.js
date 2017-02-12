@@ -100,7 +100,7 @@ class XYPlot {
         this.svg = svg;
         this.chartDiv = chartDiv;
 
-		this.createPlot(g, this.colors.pop(), data);
+        this.createPlot(g, this.colors.pop(), data);
 
         this.tooltip = d3.select('body')
             .append('div')
@@ -320,12 +320,12 @@ class XYPlot {
             this.maxY = maxPrice;
         }
 
-        this.rescaleX(minDate, maxDate);
         this.rescaleY(minPrice, maxPrice, force);
         this.drawPlot(g, symbol, data, color);
         console.log('Finished createPlot for symbol ' + symbol);
 	}
 
+    /* Returns the color used for given symbol. */
     getColor(symbol) {
         if (this.data.hasOwnProperty(symbol)) {
             return this.data[symbol].color;
@@ -350,8 +350,7 @@ class XYPlot {
                 else {
                     return 0;
                 }
-		});
-
+            });
 
 		// Add the path for the plot
 		g.append('path')
