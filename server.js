@@ -83,10 +83,11 @@ io.on('connection', (socket) => {
 function processClientMsg(msg) {
     console.log('Server got message: ' + msg);
     if (msg.cmd === 'addSym') {
+        var startDate = getStartDate(372);
         var query = {
             symbol: msg.symbol,
             type: 'daily',
-            startDate: '20160101000000'
+            startDate: startDate
         };
 
         barchart.getHistory(query, (err, res, body) => {
@@ -114,4 +115,21 @@ function processClientMsg(msg) {
         }
     }
 
+}
+
+/* Returns date N days from today. */
+function getStartDate(nDays) {
+    var dateNow = new Date();
+    var dateStartMs = dateNow.getTime() - 1000 * 3600 * 24 * nDays;
+    var dateStart = new Date(dateStartMs);
+    var year = '' + dateStart.getFullYear();
+    var month = (dateStart.getMonth() + 1);
+    if (month < 10) {
+        month = '0' + month;
+    }
+    var day = '' + dateStart.getDate();
+    var result = year + month + day + '000000';
+    console.log('getStartDate result: ' + result);
+    // return '20160101000000';
+    return result;
 }
