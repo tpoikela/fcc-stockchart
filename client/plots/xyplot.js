@@ -143,6 +143,7 @@ class XYPlot {
         if (data && data.length > 0) {
             var symbol = data[0].symbol;
             if (!this.data.hasOwnProperty(symbol)) {
+
                 this.createPlot(this.g, this.colors.pop(), data);
 
                 // Refresh existing plots (if scales have changed)
@@ -312,6 +313,12 @@ class XYPlot {
             maxY: maxPrice,
             color: color
         };
+
+        if (this.priceType === 'growth') {
+            var minShownDate = minDate;
+            this.adjustWeekendDate(minShownDate);
+            this.computeGrowthForSymbol(minShownDate, symbol);
+        }
 
         var nSyms = Object.keys(this.data).length;
         var force = nSyms === 1;
@@ -510,50 +517,55 @@ class XYPlot {
 
     /* Computes growth rates from given date to today.*/
     computeGrowthRates(minDate) {
-        var type = this.growthForType;
         var symbols = Object.keys(this.data);
         this.adjustWeekendDate(minDate);
 
         symbols.forEach( (symbol) => {
-            var dataPerSymbol = this.data[symbol].data;
-            var indexFound = this.getDateIndex(minDate, dataPerSymbol);
-
-            console.log('Found index ' + indexFound + ' for date ' + minDate);
-            var startPrice = dataPerSymbol[indexFound][type];
-            console.log('Starting price is ' + startPrice);
-
-            var i = 0;
-
-            dataPerSymbol.forEach( item => {
-                if (item.hasOwnProperty('growth')) {
-                    delete item.growth;
-                }
-            });
-
-            var minGrowth = 0;
-            var maxGrowth = 0;
-
-            // Compute min/max rates and daily growth rates until today
-            for (i = indexFound; i < dataPerSymbol.length; i++) {
-                var price = dataPerSymbol[i][type];
-                var growth = 100 * (price / startPrice) - 100;
-                dataPerSymbol[i].growth = growth;
-
-                if (i === indexFound) {
-                    minGrowth = growth;
-                    maxGrowth = growth;
-                }
-                else if (growth < minGrowth) {
-                    minGrowth = growth;
-                }
-                else if (growth > maxGrowth) {
-                    maxGrowth = growth;
-                }
-            }
-            this.data[symbol].minY = minGrowth;
-            this.data[symbol].maxY = maxGrowth;
+            this.computeGrowthForSymbol(minDate, symbol);
 
         });
+
+    }
+
+    computeGrowthForSymbol(minDate, symbol) {
+        var type = this.growthForType;
+        var dataPerSymbol = this.data[symbol].data;
+        var indexFound = this.getDateIndex(minDate, dataPerSymbol);
+
+        console.log('Found index ' + indexFound + ' for date ' + minDate);
+        var startPrice = dataPerSymbol[indexFound][type];
+        console.log('Starting price is ' + startPrice);
+
+        var i = 0;
+
+        dataPerSymbol.forEach( item => {
+            if (item.hasOwnProperty('growth')) {
+                delete item.growth;
+            }
+        });
+
+        var minGrowth = 0;
+        var maxGrowth = 0;
+
+        // Compute min/max rates and daily growth rates until today
+        for (i = indexFound; i < dataPerSymbol.length; i++) {
+            var price = dataPerSymbol[i][type];
+            var growth = 100 * (price / startPrice) - 100;
+            dataPerSymbol[i].growth = growth;
+
+            if (i === indexFound) {
+                minGrowth = growth;
+                maxGrowth = growth;
+            }
+            else if (growth < minGrowth) {
+                minGrowth = growth;
+            }
+            else if (growth > maxGrowth) {
+                maxGrowth = growth;
+            }
+        }
+        this.data[symbol].minY = minGrowth;
+        this.data[symbol].maxY = maxGrowth;
 
     }
 
