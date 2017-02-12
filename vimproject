@@ -20,9 +20,9 @@ stockchart=~/git/fcc-stockchart CD=~/git/fcc-stockchart filter="*.*" {
  client=client {
   jsx=jsx {
    app.jsx
+   price-type-elem.jsx
    stock-chart.jsx
    time-span-elem.jsx
-   price-type-elem.jsx
   }
   plots=plots {
    xyplot.js
