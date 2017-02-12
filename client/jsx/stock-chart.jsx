@@ -148,7 +148,7 @@ class StockChart extends React.Component {
             return (
                 <div className='sym-elem' key={index}>
                     {item} <span style={colorStyle}>--</span>
-                    <button className='sym-elem-btn' id={item}
+                    <button className='sym-elem-btn btn-danger' id={item}
                         onClick={this.onClickDelete}
                         >
                         X
