@@ -22,21 +22,24 @@ class XYPlot {
             throw new Error('elemID must point to existing elem');
         }
 
-        var w = chartDiv.style('width').replace('px', '');
-        console.log('chartDiv w is ' + w);
+        var chartDivWidth = chartDiv.style('width').replace('px', '');
+        console.log('chartDiv weight is ' + chartDivWidth);
 
         chartDiv.append('svg');
 
         var svg = d3.select('svg');
         svg.style('height', this.maxHeight + 'px');
-        svg.style('width', this.maxWidth + 'px');
 
-        var svgWidth = w * 0.8;
+        var svgWidth = chartDivWidth * 0.9;
         var svgHeight = svg.style('height').replace('px', '');
-        this.maxWidth = svgWidth - margin.left - margin.right;
+        this.maxWidth = svgWidth - margin.left - margin.right - 30;
         this.maxHeight = svgHeight - margin.top - margin.bottom;
+        svg.style('width', svgWidth + 'px');
 
-        console.log('svg maxHeight will be ' + this.maxHeight);
+        console.log('svgHeight is ' + svgHeight);
+        console.log('svgWidth ' + svgWidth);
+        console.log('plot maxHeight will be ' + this.maxHeight);
+        console.log('plot maxWidth will be ' + this.maxWidth);
 
         // Create X-axis with trading days
         var tradingDays = data.map( (item) => {
