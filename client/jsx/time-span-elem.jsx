@@ -1,6 +1,7 @@
 
 const React = require('react');
 
+/* Controls buttons which select the time span shown on the plot.*/
 class TimeSpanElem extends React.Component {
 
     constructor(props) {

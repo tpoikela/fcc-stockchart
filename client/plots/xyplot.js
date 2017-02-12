@@ -591,6 +591,7 @@ class XYPlot {
     /* Formats the HTML for tooltip based on the weather data.*/
     getTooltipHTML(d) {
         var html = '<p>';
+        html += d.symbol + '<br/>';
         html += 'Trading day: ' + d.tradingDay + '<br/>';
         html += 'High: ' + d.high + '<br/>';
         html += 'Low: ' + d.low + '<br/>';
