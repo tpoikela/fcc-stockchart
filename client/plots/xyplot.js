@@ -229,9 +229,24 @@ class XYPlot {
 
     }
 
+    /* Returns the latest date in the data array.*/
+    getLatestDate() {
+        var syms = Object.keys(this.data);
+        if (syms.length > 0) {
+            var symbol = syms[0];
+            var dataLen = this.data[symbol].data.length;
+            var lastDate = this.data[symbol].data[dataLen - 1].tradingDay;
+            return new Date(lastDate);
+        }
+        else {
+            console.error('No symbols in the plot found.');
+        }
+        return null;
+    }
+
     /* Sets the X-axis date range.*/
     setRangeX(range) {
-        var dateNow = new Date();
+        var dateNow = this.getLatestDate();
         var nowMs = dateNow.getTime();
         var msPerDay = 24 * 3600 * 1000;
         var startDateMs = -1;
@@ -394,6 +409,17 @@ class XYPlot {
                     }
                 })
                 .style('fill', color)
+                /*
+                .style('visibility', (d) => {
+                    var day = new Date(d.tradingDay);
+                    if (day < this.minX) {
+                        return 'hidden';
+                    }
+                    else {
+                        return 'visible';
+                    }
+                })
+                */
 
                 // Needed for showing/hiding the tooltip
                 .on('mouseover', d => {
@@ -527,6 +553,9 @@ class XYPlot {
 
     }
 
+    /* Computes the growth rates for given symbol. The rates are based on
+     * previosly selected price view: 'high', 'low', etc...
+     */
     computeGrowthForSymbol(minDate, symbol) {
         var type = this.growthForType;
         var dataPerSymbol = this.data[symbol].data;
