@@ -177,7 +177,7 @@ class XYPlot {
             this.colors.push(color);
             delete this.data[symbol];
 
-            // TODO add scaling of x/y-domain
+            // Scale y-values with existing plots
             this.minY = this.getGlobalMinY();
             this.maxY = this.getGlobalMaxY();
 
@@ -361,6 +361,7 @@ class XYPlot {
     /* Draws plot for 'symbol' using given data. Doesn't clear previous
      * plots.*/
     drawPlot(g, symbol, data, color) {
+        var dataFiltered = this.filterData(data);
 		var plotLine = d3.line()
 			.x( d => {
 				return this.xScale(new Date(d.tradingDay));
@@ -376,7 +377,7 @@ class XYPlot {
 
 		// Add the path for the plot
 		g.append('path')
-			.datum(data)
+			.datum(dataFiltered)
 			.attr('class', 'plot-line ' + 'plot-line-' + symbol)
 			.attr('fill', 'none')
 			.attr('stroke-width', 2)
@@ -384,7 +385,7 @@ class XYPlot {
 			.attr('d', plotLine);
 
         g.selectAll('.putAnythingYouWantHere')
-            .data(data).enter()
+            .data(dataFiltered).enter()
             .append('circle')
                 .attr('class', 'price-point ' + 'price-point-' + symbol)
                 .attr('r', this.circleRadius)
@@ -395,14 +396,9 @@ class XYPlot {
                 })
                 .attr('cy', d => {
                     var yValue = d[this.priceType];
-                    if (yValue) {
+                    if (yValue || yValue === 0) {
                         var cy = this.yScale(yValue);
-                        if (cy) {
-                            return cy;
-                        }
-                        else {
-                            return 0;
-                        }
+                        return cy;
                     }
                     else {
                         return 0;
@@ -565,8 +561,6 @@ class XYPlot {
         var startPrice = dataPerSymbol[indexFound][type];
         console.log('Starting price is ' + startPrice);
 
-        var i = 0;
-
         dataPerSymbol.forEach( item => {
             if (item.hasOwnProperty('growth')) {
                 delete item.growth;
@@ -576,11 +570,17 @@ class XYPlot {
         var minGrowth = 0;
         var maxGrowth = 0;
 
+        var i = 0;
         // Compute min/max rates and daily growth rates until today
         for (i = indexFound; i < dataPerSymbol.length; i++) {
             var price = dataPerSymbol[i][type];
             var growth = 100 * (price / startPrice) - 100;
             dataPerSymbol[i].growth = growth;
+
+            if (i === indexFound) {
+                console.log('growth for indexFound (' + indexFound + ') :' +
+                    growth);
+            }
 
             if (i === indexFound) {
                 minGrowth = growth;
@@ -626,6 +626,19 @@ class XYPlot {
         html += 'Low: ' + d.low + '<br/>';
         html += '</p>';
         return html;
+    }
+
+    filterData(data) {
+        var result = [];
+        console.log('filterData max: ' + this.maxX + ' min: ' + this.minX);
+        data.forEach( item => {
+            var tradingDate = new Date(item.tradingDay);
+            if (tradingDate <= this.maxX && tradingDate >= this.minX) {
+                result.push(item);
+            }
+        });
+        console.log('filterData: result has ' + result.length + ' items');
+        return result;
     }
 
 }
