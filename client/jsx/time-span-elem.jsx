@@ -24,13 +24,15 @@ class TimeSpanElem extends React.Component {
     render() {
         var onClick = this.onClick;
 
-        var buttons = this.buttons.map( (item) => {
+        var buttons = this.buttons.map( (item, index) => {
             var className = 'btn-primary';
             if (this.state.selected === item) {
                 className = 'btn-success';
             }
             return (
-                <button className={className} onClick={onClick}>{item}</button>
+                <button className={className} key={index} onClick={onClick}>
+                    {item}
+                </button>
             );
         });
 
