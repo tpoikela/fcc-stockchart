@@ -1,6 +1,10 @@
 
+'use strict';
+
 const d3 = require('d3');
 
+/* This class is used to manage the data and select which data is used in the
+ * plotting. */
 class XYPlot {
 
     constructor(elemID, data) {
@@ -405,17 +409,6 @@ class XYPlot {
                     }
                 })
                 .style('fill', color)
-                /*
-                .style('visibility', (d) => {
-                    var day = new Date(d.tradingDay);
-                    if (day < this.minX) {
-                        return 'hidden';
-                    }
-                    else {
-                        return 'visible';
-                    }
-                })
-                */
 
                 // Needed for showing/hiding the tooltip
                 .on('mouseover', d => {
@@ -628,6 +621,8 @@ class XYPlot {
         return html;
     }
 
+    /* Filters data based on minX and maxX values. Called just before drawing
+     * the plot.*/
     filterData(data) {
         var result = [];
         console.log('filterData max: ' + this.maxX + ' min: ' + this.minX);
