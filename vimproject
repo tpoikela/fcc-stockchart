@@ -31,9 +31,13 @@ stockchart=~/git/fcc-stockchart CD=~/git/fcc-stockchart filter="*.*" {
  server=server {
   ctrl=ctrl {
    barchart.js
+   socket-ctrl.js
   }
   routes=routes {
    index.js
+  }
+  models=models {
+   stock-data.js
   }
  }
  node_modules=node_modules {
