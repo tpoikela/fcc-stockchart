@@ -8,11 +8,15 @@ stockchart=~/git/fcc-stockchart CD=~/git/fcc-stockchart filter="*.*" {
  . # pragma keep
  build=build {
   bundle.js
+  bundleTests.js
+  main.css
  }
  git=.git {
  }
  test=test {
   barchartTest.js
+  xyplot.js
+  xyplotTest.html
  }
  public=public {
   index.html
