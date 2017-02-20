@@ -1,5 +1,10 @@
 
 $bg-color: #EEEEEE;
+$text-color: Black;
+
+h1 {
+    display: inline;
+}
 
 .temp-tooltip {
     background-color: transparentize($bg-color, 0.3);
@@ -19,4 +24,30 @@ $bg-color: #EEEEEE;
 
 .input-sym {
     margin-top: 5px;
+}
+
+.span-elem {
+    margin-left: 15px;
+
+}
+
+.price-type-elem {
+    display: inline;
+}
+
+.time-span-elem {
+    display: inline;
+}
+
+ul.footer-links {
+    padding-left: 0px;
+}
+
+.footer-link-icon {
+    display: inline-block;
+    margin-right: 10px;
+
+    i {
+        color: $text-color;
+    }
 }
