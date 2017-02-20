@@ -2,6 +2,7 @@
 'use strict';
 
 const d3 = require('d3');
+const DataCtrl = require('../ctrl/data-ctrl');
 
 /* This class is used to manage the data and select which data is used in the
  * plotting. */
@@ -9,6 +10,7 @@ class XYPlot {
 
     constructor(elemID, data) {
 
+        this.ctrl = new DataCtrl();
         this.quiet = false;
         this.verbosity = 0;
 
@@ -66,7 +68,7 @@ class XYPlot {
             .range([0, this.maxWidth]);
 
         // Compute min/max value for y-axis and create Y-scale
-		var minMaxPrice = this.getMinMaxY(data);
+		var minMaxPrice = this.ctrl.getMinMaxY(data, this.priceType);
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
         this.minY = minPrice;
@@ -121,33 +123,6 @@ class XYPlot {
 
     }
 
-    /* Returns the earliest/latest dates in data.*/
-    getMinMaxDate(data) {
-        var dates = data.map( item => {
-            var date = item.tradingDay;
-            return date;
-        });
-
-        var nLast = dates.length - 1;
-        var min = new Date(dates[0]);
-        var max = new Date(dates[nLast]);
-
-        return [min, max];
-    }
-
-    /* Returns min and max Y value in the data.*/
-	getMinMaxY(data) {
-        var prices = data.map( item => {
-            var price = parseFloat(item[this.priceType]);
-            return price;
-        });
-
-        var minPrice = Math.min.apply(null, prices);
-        var maxPrice = Math.max.apply(null, prices);
-
-		return [minPrice, maxPrice];
-	}
-
     /* Adds a new dataset to the plot.*/
 	addData(data) {
         if (data && data.length > 0) {
@@ -188,8 +163,8 @@ class XYPlot {
             delete this.data[symbol];
 
             // Scale y-values with existing plots
-            this.minY = this.getGlobalMinY();
-            this.maxY = this.getGlobalMaxY();
+            this.minY = this.ctrl.getGlobalMinY(this.data);
+            this.maxY = this.ctrl.getGlobalMaxY(this.data);
 
             this.rescaleY(this.minY, this.maxY, true);
 
@@ -212,8 +187,8 @@ class XYPlot {
         if (type === 'growth') {
             if (this.priceType !== 'growth') {
                 this.growthForType = this.priceType;
-                var minDate = this.minX;
-                this.computeGrowthRates(minDate);
+                this.ctrl.computeGrowthRates(this.data, this.minX,
+                    this.growthForType);
                 this.priceType = 'growth';
             }
         }
@@ -222,15 +197,15 @@ class XYPlot {
 
             var symbols = Object.keys(this.data);
             symbols.forEach( (sym) => {
-                var minMax = this.getMinMaxY(this.data[sym].data);
+                var minMax = this.ctrl.getMinMaxY(this.data[sym].data, type);
                 this.data[sym].minY = minMax[0];
                 this.data[sym].maxY = minMax[1];
             });
 
         }
 
-        var minY = this.getGlobalMinY();
-        var maxY = this.getGlobalMaxY();
+        var minY = this.ctrl.getGlobalMinY(this.data);
+        var maxY = this.ctrl.getGlobalMaxY(this.data);
         this.logMsg('setAxisTypeY new global min ' + minY + ' max ' + maxY);
         this.minY = minY;
         this.maxY = maxY;
@@ -239,24 +214,10 @@ class XYPlot {
 
     }
 
-    /* Returns the latest date in the data array.*/
-    getLatestDate() {
-        var syms = Object.keys(this.data);
-        if (syms.length > 0) {
-            var symbol = syms[0];
-            var dataLen = this.data[symbol].data.length;
-            var lastDate = this.data[symbol].data[dataLen - 1].tradingDay;
-            return new Date(lastDate);
-        }
-        else {
-            console.error('No symbols in the plot found.');
-        }
-        return null;
-    }
 
     /* Sets the X-axis date range.*/
     setRangeX(range) {
-        var dateNow = this.getLatestDate();
+        var dateNow = this.ctrl.getLatestDate(this.data);
         var nowMs = dateNow.getTime();
         var startDateMs = -1;
 
@@ -290,9 +251,10 @@ class XYPlot {
         this.rescaleX(startDate, dateNow, true);
 
         if (this.priceType === 'growth') {
-            this.computeGrowthRates(this.minX);
-            var minY = this.getGlobalMinY();
-            var maxY = this.getGlobalMaxY();
+            this.ctrl.computeGrowthRates(this.data, this.minX,
+                this.growthForType);
+            var minY = this.ctrl.getGlobalMinY(this.data);
+            var maxY = this.ctrl.getGlobalMaxY(this.data);
             this.minY = minY;
             this.maxY = maxY;
             this.rescaleY(minY, maxY, true);
@@ -320,11 +282,11 @@ class XYPlot {
             throw new Error('No symbol found in data.');
         }
 
-        var minMaxDate = this.getMinMaxDate(data);
+        var minMaxDate = this.ctrl.getMinMaxDate(data);
         var minDate = minMaxDate[0];
         var maxDate = minMaxDate[1];
 
-        var minMaxPrice = this.getMinMaxY(data);
+        var minMaxPrice = this.ctrl.getMinMaxY(data, this.priceType);
         var minPrice = minMaxPrice[0];
         var maxPrice = minMaxPrice[1];
 
@@ -340,7 +302,7 @@ class XYPlot {
 
         if (this.priceType === 'growth') {
             var minShownDate = minDate;
-            this.adjustWeekendDate(minShownDate);
+            this.ctrl.adjustWeekendDate(minShownDate);
             this.computeGrowthForSymbol(minShownDate, symbol);
         }
 
@@ -370,7 +332,7 @@ class XYPlot {
     /* Draws plot for 'symbol' using given data. Doesn't clear previous
      * plots.*/
     drawPlot(g, symbol, data, color) {
-        var dataFiltered = this.filterData(data);
+        var dataFiltered = this.ctrl.filterData(data, this.minX, this.maxX);
 		var plotLine = d3.line()
 			.x( d => {
 				return this.xScale(new Date(d.tradingDay));
@@ -501,139 +463,6 @@ class XYPlot {
 
     }
 
-    /* Returns the smallest Y-value in all datasets.*/
-    getGlobalMinY() {
-        var minY = 0;
-        var symbols = Object.keys(this.data);
-        symbols.forEach( (item, index) => {
-            var obj = this.data[item];
-            if (index === 0) {
-                minY = obj.minY;
-            }
-            else if (obj.minY < minY) {
-                minY = obj.minY;
-            }
-
-        });
-        return minY;
-    }
-
-    /* Returns the largest Y-value in all datasets.*/
-    getGlobalMaxY() {
-        var maxY = 0;
-        var symbols = Object.keys(this.data);
-        symbols.forEach( (item, index) => {
-            var obj = this.data[item];
-            if (index === 0) {
-                maxY = obj.maxY;
-            }
-            else if (obj.maxY > maxY) {
-                maxY = obj.maxY;
-            }
-
-        });
-        return maxY;
-    }
-
-    /* Computes growth rates from a given date to today.*/
-    computeGrowthRates(minDate) {
-        var symbols = Object.keys(this.data);
-        this.adjustWeekendDate(minDate);
-
-        symbols.forEach( (symbol) => {
-            this.computeGrowthForSymbol(minDate, symbol);
-        });
-
-    }
-
-    /* Computes the growth rates for given symbol. The rates are based on
-     * previosly selected price view: 'high', 'low', etc...
-     */
-    computeGrowthForSymbol(minDate, symbol) {
-        var type = this.growthForType;
-        var dataPerSymbol = this.data[symbol].data;
-        var indexFound = this.getDateIndex(minDate, dataPerSymbol);
-
-        var firstDate = dataPerSymbol[0].tradingDay;
-        var firstDateObj = new Date(firstDate);
-
-        var maxTries = 365;
-        var numTry = 1;
-
-        while (indexFound === -1 && numTry <= maxTries) {
-
-            if (firstDateObj >= minDate) {
-                indexFound = 0;
-            }
-            else {
-                var msNextDay = numTry * this.msPerDay;
-                var nextDate = new Date(minDate.getTime() + msNextDay);
-                indexFound = this.getDateIndex(nextDate, dataPerSymbol);
-            }
-
-            ++numTry;
-        }
-
-        this.logMsg('Found index ' + indexFound + ' for date ' + minDate);
-        var startPrice = dataPerSymbol[indexFound][type];
-        this.logMsg('Starting price is ' + startPrice);
-
-        dataPerSymbol.forEach( item => {
-            if (item.hasOwnProperty('growth')) {
-                delete item.growth;
-            }
-        });
-
-        var minGrowth = 0;
-        var maxGrowth = 0;
-
-        var i = 0;
-        // Compute min/max rates and daily growth rates until today
-        for (i = indexFound; i < dataPerSymbol.length; i++) {
-            var price = dataPerSymbol[i][type];
-            var growth = 100 * (price / startPrice) - 100;
-            dataPerSymbol[i].growth = growth;
-
-            if (i === indexFound) {
-                this.logMsg('growth for indexFound (' + indexFound + ') :' +
-                    growth);
-            }
-
-            if (i === indexFound) {
-                minGrowth = growth;
-                maxGrowth = growth;
-            }
-            else if (growth < minGrowth) {
-                minGrowth = growth;
-            }
-            else if (growth > maxGrowth) {
-                maxGrowth = growth;
-            }
-        }
-        this.data[symbol].minY = minGrowth;
-        this.data[symbol].maxY = maxGrowth;
-
-    }
-
-
-    adjustWeekendDate(date) {
-        if (date.getDay() === 0) {
-            date.setTime(date.getTime() + this.msPerDay);
-        }
-        else if (date.getDay() === 6) {
-            date.setTime(date.getTime() - this.msPerDay);
-        }
-    }
-
-    /* Returns the index of a given date for the data.*/
-    getDateIndex(minDate, data) {
-        var minDateStr = minDate.toDateString();
-        return data.findIndex( elem => {
-            var tradeDate = new Date(elem.tradingDay);
-            return tradeDate.toDateString() === minDateStr;
-        });
-    }
-
     /* Formats the HTML for tooltip based on the weather data.*/
     getTooltipHTML(d) {
         var html = '<p>';
@@ -643,21 +472,6 @@ class XYPlot {
         html += 'Low: ' + d.low + '<br/>';
         html += '</p>';
         return html;
-    }
-
-    /* Filters data based on minX and maxX values. Called just before drawing
-     * the plot.*/
-    filterData(data) {
-        var result = [];
-        this.logMsg('filterData max: ' + this.maxX + ' min: ' + this.minX);
-        data.forEach( item => {
-            var tradingDate = new Date(item.tradingDay);
-            if (tradingDate <= this.maxX && tradingDate >= this.minX) {
-                result.push(item);
-            }
-        });
-        this.logMsg('filterData: result has ' + result.length + ' items');
-        return result;
     }
 
     logMsg(msg, verb = 1) {
