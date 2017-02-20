@@ -8,17 +8,23 @@ const d3 = require('d3');
 class XYPlot {
 
     constructor(elemID, data) {
+
+        this.quiet = false;
+        this.verbosity = 1;
+
+        this.msPerDay = 24 * 3600 * 1000;
+
         this.data = {};
         this.colors = ['red', 'blue', 'green', 'cyan', 'brown', 'purple'];
 
-        console.log('Constructing the plot now');
+        this.logMsg('Constructing the plot now');
         this.elemID = elemID;
         this.priceType = 'high';
 
         this.circleRadius = 5;
         this.maxWidth = 1000;
         this.maxHeight = 360;
-        var margin = {top: 10, left: 10, right: 10, bottom: 20};
+        var margin = {top: 10, left: 20, right: 10, bottom: 20};
 
         var chartDiv = d3.select(elemID);
 
@@ -27,7 +33,7 @@ class XYPlot {
         }
 
         var chartDivWidth = chartDiv.style('width').replace('px', '');
-        console.log('chartDiv weight is ' + chartDivWidth);
+        this.logMsg('chartDiv weight is ' + chartDivWidth);
 
         chartDiv.append('svg');
 
@@ -40,10 +46,10 @@ class XYPlot {
         this.maxHeight = svgHeight - margin.top - margin.bottom;
         svg.style('width', svgWidth + 'px');
 
-        console.log('svgHeight is ' + svgHeight);
-        console.log('svgWidth ' + svgWidth);
-        console.log('plot maxHeight will be ' + this.maxHeight);
-        console.log('plot maxWidth will be ' + this.maxWidth);
+        this.logMsg('svgHeight is ' + svgHeight);
+        this.logMsg('svgWidth ' + svgWidth);
+        this.logMsg('plot maxHeight will be ' + this.maxHeight);
+        this.logMsg('plot maxWidth will be ' + this.maxWidth);
 
         // Create X-axis with trading days
         var tradingDays = data.map( (item) => {
@@ -66,7 +72,7 @@ class XYPlot {
         this.minY = minPrice;
 		this.maxY = maxPrice;
 
-        console.log('min: ' + minPrice + ' -- max: ' + maxPrice);
+        this.logMsg('min: ' + minPrice + ' -- max: ' + maxPrice);
 
         var yScale = d3.scaleLinear()
             .domain([maxPrice + 10, minPrice - 10])
@@ -225,7 +231,7 @@ class XYPlot {
 
         var minY = this.getGlobalMinY();
         var maxY = this.getGlobalMaxY();
-        console.log('setAxisTypeY new global min ' + minY + ' max ' + maxY);
+        this.logMsg('setAxisTypeY new global min ' + minY + ' max ' + maxY);
         this.minY = minY;
         this.maxY = maxY;
         this.rescaleY(minY, maxY, true);
@@ -252,26 +258,25 @@ class XYPlot {
     setRangeX(range) {
         var dateNow = this.getLatestDate();
         var nowMs = dateNow.getTime();
-        var msPerDay = 24 * 3600 * 1000;
         var startDateMs = -1;
 
         // Compute startDate in millisecond and adjust circle radius based on
         // the selected time span
         switch (range) {
             case '1m':
-                startDateMs = nowMs - 30 * msPerDay;
+                startDateMs = nowMs - 30 * this.msPerDay;
                 this.circleRadius = 5;
                 break;
             case '3m':
-                startDateMs = nowMs - 90 * msPerDay;
+                startDateMs = nowMs - 90 * this.msPerDay;
                 this.circleRadius = 4;
                 break;
             case '6m':
-                startDateMs = nowMs - 180 * msPerDay;
+                startDateMs = nowMs - 180 * this.msPerDay;
                 this.circleRadius = 3;
                 break;
             case '1y':
-                startDateMs = nowMs - 365 * msPerDay;
+                startDateMs = nowMs - 365 * this.msPerDay;
                 this.circleRadius = 3;
                 break;
             default: console.error('Incorrect range format: ' + range);
@@ -310,7 +315,7 @@ class XYPlot {
 	createPlot(g, color, data) {
 
         var symbol = data[0].symbol;
-        console.log('createPlot for symbol ' + symbol);
+        this.logMsg('createPlot for symbol ' + symbol);
         if (!symbol) {
             throw new Error('No symbol found in data.');
         }
@@ -348,7 +353,7 @@ class XYPlot {
 
         this.rescaleY(minPrice, maxPrice, force);
         this.drawPlot(g, symbol, data, color);
-        console.log('Finished createPlot for symbol ' + symbol);
+        this.logMsg('Finished createPlot for symbol ' + symbol);
 	}
 
     /* Returns the color used for given symbol. */
@@ -530,14 +535,13 @@ class XYPlot {
         return maxY;
     }
 
-    /* Computes growth rates from given date to today.*/
+    /* Computes growth rates from a given date to today.*/
     computeGrowthRates(minDate) {
         var symbols = Object.keys(this.data);
         this.adjustWeekendDate(minDate);
 
         symbols.forEach( (symbol) => {
             this.computeGrowthForSymbol(minDate, symbol);
-
         });
 
     }
@@ -549,10 +553,27 @@ class XYPlot {
         var type = this.growthForType;
         var dataPerSymbol = this.data[symbol].data;
         var indexFound = this.getDateIndex(minDate, dataPerSymbol);
+        var firstDate = dataPerSymbol[0].tradingDay;
 
-        console.log('Found index ' + indexFound + ' for date ' + minDate);
+        var maxTries = 365;
+        var numTry = 1;
+
+        while (indexFound === -1 && numTry <= maxTries) {
+
+            if (firstDate >= minDate) {
+                indexFound = 0;
+            }
+            else {
+                var nextDate = new Date(minDate.getTime() + numTry * this.msPerDay);
+                indexFound = this.getDateIndex(nextDate, dataPerSymbol);
+            }
+
+            ++numTry;
+        }
+
+        this.logMsg('Found index ' + indexFound + ' for date ' + minDate);
         var startPrice = dataPerSymbol[indexFound][type];
-        console.log('Starting price is ' + startPrice);
+        this.logMsg('Starting price is ' + startPrice);
 
         dataPerSymbol.forEach( item => {
             if (item.hasOwnProperty('growth')) {
@@ -571,7 +592,7 @@ class XYPlot {
             dataPerSymbol[i].growth = growth;
 
             if (i === indexFound) {
-                console.log('growth for indexFound (' + indexFound + ') :' +
+                this.logMsg('growth for indexFound (' + indexFound + ') :' +
                     growth);
             }
 
@@ -594,10 +615,10 @@ class XYPlot {
 
     adjustWeekendDate(date) {
         if (date.getDay() === 0) {
-            date.setTime(date.getTime() + 24 * 3600 * 1000);
+            date.setTime(date.getTime() + this.msPerDay);
         }
         else if (date.getDay() === 6) {
-            date.setTime(date.getTime() - 24 * 3600 * 1000);
+            date.setTime(date.getTime() - this.msPerDay);
         }
     }
 
@@ -625,15 +646,21 @@ class XYPlot {
      * the plot.*/
     filterData(data) {
         var result = [];
-        console.log('filterData max: ' + this.maxX + ' min: ' + this.minX);
+        this.logMsg('filterData max: ' + this.maxX + ' min: ' + this.minX);
         data.forEach( item => {
             var tradingDate = new Date(item.tradingDay);
             if (tradingDate <= this.maxX && tradingDate >= this.minX) {
                 result.push(item);
             }
         });
-        console.log('filterData: result has ' + result.length + ' items');
+        this.logMsg('filterData: result has ' + result.length + ' items');
         return result;
+    }
+
+    logMsg(msg, verb = 1) {
+        if (!this.quiet && verb <= this.verbosity) {
+            console.log(msg);
+        }
     }
 
 }
