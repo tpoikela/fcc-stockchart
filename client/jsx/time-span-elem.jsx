@@ -37,7 +37,7 @@ class TimeSpanElem extends React.Component {
         });
 
         return (
-            <div className='time-span-elem'>
+            <div className='span-elem time-span-elem'>
                 {buttons}
             </div>
         );

@@ -34,7 +34,7 @@ class PriceTypeElem extends React.Component {
         });
 
         return (
-            <div className='price-type-elem'>
+            <div className='span-elem price-type-elem'>
                 {buttons}
             </div>
         );
