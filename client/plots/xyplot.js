@@ -10,7 +10,7 @@ class XYPlot {
     constructor(elemID, data) {
 
         this.quiet = false;
-        this.verbosity = 1;
+        this.verbosity = 0;
 
         this.msPerDay = 24 * 3600 * 1000;
 
@@ -553,18 +553,21 @@ class XYPlot {
         var type = this.growthForType;
         var dataPerSymbol = this.data[symbol].data;
         var indexFound = this.getDateIndex(minDate, dataPerSymbol);
+
         var firstDate = dataPerSymbol[0].tradingDay;
+        var firstDateObj = new Date(firstDate);
 
         var maxTries = 365;
         var numTry = 1;
 
         while (indexFound === -1 && numTry <= maxTries) {
 
-            if (firstDate >= minDate) {
+            if (firstDateObj >= minDate) {
                 indexFound = 0;
             }
             else {
-                var nextDate = new Date(minDate.getTime() + numTry * this.msPerDay);
+                var msNextDay = numTry * this.msPerDay;
+                var nextDate = new Date(minDate.getTime() + msNextDay);
                 indexFound = this.getDateIndex(nextDate, dataPerSymbol);
             }
 
@@ -622,7 +625,7 @@ class XYPlot {
         }
     }
 
-    /* Returns the index of given date for the data.*/
+    /* Returns the index of a given date for the data.*/
     getDateIndex(minDate, data) {
         var minDateStr = minDate.toDateString();
         return data.findIndex( elem => {
