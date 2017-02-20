@@ -6,6 +6,7 @@ const io = require('socket.io-client');
 const XYPlot = require('../plots/xyplot.js');
 const TimeSpanElem = require('./time-span-elem.jsx');
 const PriceTypeElem = require('./price-type-elem.jsx');
+const AuthorFooter = require('./author-footer.jsx');
 
 /* Component which handles socket communication and instantiates the child
  * components for stock charting app.
@@ -166,6 +167,7 @@ class StockChart extends React.Component {
 
         return (
             <div>
+                <h1>StockCharts:</h1>
                 <TimeSpanElem onClick={this.changeTimeSpan}/>
                 <PriceTypeElem onClick={this.setAxisTypeY}/>
 
@@ -174,10 +176,12 @@ class StockChart extends React.Component {
                     {symbolElems}
                 </div>
                 {errorElem}
-                <input className='input-sym' name='input-sym'
-                    onChange={this.onChange}
+                Stock symbol: <input className='input input-sym'
+                    name='input-sym' onChange={this.onChange}
+                    placeholder='Stock symbol (ie. NKA)'
                 />
 				<button onClick={this.onClickAdd}>Add</button>
+                <AuthorFooter/>
             </div>
         );
 
