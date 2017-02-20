@@ -16,6 +16,8 @@ class StockChart extends React.Component {
     constructor(props) {
         super(props);
 
+        this.verbosity = 1;
+
 		this.onClickAdd = this.onClickAdd .bind(this);
 		this.onClickDelete = this.onClickDelete.bind(this);
 		this.onChange = this.onChange.bind(this);
@@ -54,7 +56,7 @@ class StockChart extends React.Component {
     onClickDelete(e) {
         var elem = e.target;
         var symID = elem.getAttribute('id');
-        console.log('onClickDelete symbol ID is ' + symID);
+        this.logMsg('onClickDelete symbol ID is ' + symID);
 
 		var msg = {cmd: 'delSym', symbol: symID};
 		this.socket.emit('client message', msg);
@@ -72,7 +74,7 @@ class StockChart extends React.Component {
         this.socket = io();
 
         this.socket.on('server message', (msg) => {
-            console.log('Got message from server: ' + msg);
+            this.logMsg('Got message from server: ' + msg);
             this.handleServerCmd(msg);
 
         });
@@ -127,7 +129,7 @@ class StockChart extends React.Component {
     changeTimeSpan(e) {
         var btn = e.target;
         var text = btn.textContent;
-        console.log('Changing time span to ' + text);
+        this.logMsg('Changing time span to ' + text);
         this.plot.setRangeX(text);
         this.setState({msg: 'Range updated.'});
     }
@@ -135,7 +137,7 @@ class StockChart extends React.Component {
     setAxisTypeY(e) {
         var btn = e.target;
         var text = btn.textContent;
-        console.log('Changing Y axis to ' + text);
+        this.logMsg('Changing Y axis to ' + text);
         this.plot.setAxisTypeY(text);
         this.setState({msg: 'Range updated.'});
     }
@@ -185,6 +187,13 @@ class StockChart extends React.Component {
             </div>
         );
 
+    }
+
+
+    logMsg(msg, verb) {
+        if (verb <= this.verbosity) {
+            console.log('[INFO] ' + msg);
+        }
     }
 
 }
