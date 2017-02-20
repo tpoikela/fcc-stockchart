@@ -24,7 +24,6 @@ class SocketCtrl {
                 socket.emit('server message', msg);
             });
 
-
             socket.on('client message', this.processClientMsg);
         });
     }
@@ -60,7 +59,7 @@ class SocketCtrl {
                     }
                     else if (code === 204) {
                         var errorMsg = 'No symbol ' + msg.symbol + ' found.';
-                        this.emitErrr(errorMsg);
+                        this.emitError(errorMsg);
                     }
                 }
 
@@ -80,7 +79,7 @@ class SocketCtrl {
 
     }
 
-    /* Returns date N days from today. */
+    /* Returns a date N days from today. */
     getStartDate(nDays) {
         var dateNow = new Date();
         var dateStartMs = dateNow.getTime() - 1000 * 3600 * 24 * nDays;
@@ -100,6 +99,7 @@ class SocketCtrl {
         this.io.emit('server message', msg);
     }
 
+    /* Emits given error message using socket.*/
     emitError(errorMsg) {
         this.io.emit('server message', {error: errorMsg});
     }
