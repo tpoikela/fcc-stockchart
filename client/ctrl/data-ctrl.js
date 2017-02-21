@@ -7,7 +7,7 @@ class DataController {
 
     constructor(conf) {
         this.msPerDay = 24 * 3600 * 1000;
-        this.verbosity = 0;
+        this.verbosity = 1;
 
         if (conf) {
             if (conf.hasOwnProperty('verbosity')) {
@@ -174,6 +174,12 @@ class DataController {
             }
 
             ++numTry;
+        }
+
+        if (indexFound === -1) {
+            var errMsg = 'For date ' + minDate + ' no data index found';
+            console.error('Error for symbol ' + symbol + ': ' + errMsg);
+            return;
         }
 
         this.logMsg('Found index ' + indexFound + ' for date ' + minDate);
