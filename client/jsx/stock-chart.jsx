@@ -30,7 +30,8 @@ class StockChart extends React.Component {
             error: null,
             symbol: null, // Each stock is id'ed by its symbol
             symbols: [],
-            data: {}
+            data: {},
+            reqPending: false
 		};
     }
 
@@ -43,6 +44,7 @@ class StockChart extends React.Component {
             if (index < 0) {
                 var msg = {cmd: 'addSym', symbol: symbol};
                 this.socket.emit('client message', msg);
+                this.setState({reqPending: true});
             }
             else {
                 var err = 'Symbol ' + symbol + ' already exists.';
@@ -88,7 +90,7 @@ class StockChart extends React.Component {
 
         if (!newSymbol) {
             var err = 'Symbol was not found.';
-            this.setState({error: err});
+            this.setState({error: err, reqPending: false});
             return;
         }
 
@@ -107,10 +109,12 @@ class StockChart extends React.Component {
                     this.plot.addData(obj.results);
                 }
 
-                this.setState({symbols: symbols, data: data, error: null});
+                this.setState({symbols: symbols, data: data, error: null,
+                    reqPending: false});
             }
             else {
-                this.setState({error: 'Cannot add. msg.body null.'});
+                this.setState({error: 'Cannot add. msg.body null.',
+                    reqPending: false});
             }
         }
         else {
@@ -118,10 +122,11 @@ class StockChart extends React.Component {
             if (index >= 0) {
                 symbols.splice(index, 1);
                 this.plot.removePlot(newSymbol);
-                this.setState({symbols: symbols});
+                this.setState({symbols: symbols, reqPending: false});
             }
             else {
-                this.setState({error: 'Cannot delete. No symbol found.'});
+                this.setState({error: 'Cannot delete. No symbol found.',
+                    reqPending: false});
             }
         }
     }
@@ -167,6 +172,11 @@ class StockChart extends React.Component {
             );
         }
 
+        var spinner = <button onClick={this.onClickAdd}>Add</button>;
+        if (this.state.reqPending) {
+            spinner = <i className='fa fa-spin fa-spinner fa-2x'/>;
+        }
+
         return (
             <div>
                 <h1>StockCharts:</h1>
@@ -182,7 +192,7 @@ class StockChart extends React.Component {
                     name='input-sym' onChange={this.onChange}
                     placeholder='Stock symbol (ie. NKA)'
                 />
-				<button onClick={this.onClickAdd}>Add</button>
+                {spinner}
                 <AuthorFooter/>
             </div>
         );
