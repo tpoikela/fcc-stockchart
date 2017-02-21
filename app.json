@@ -1,0 +1,6 @@
+{
+  "name": "StockCharts",
+  "description": "Users can view stock pricing with each other",
+  "repository": "https://github.com/tpoikela/fcc-stockchart",
+  "keywords": ["node", "express", "react", "stocks"]
+}
