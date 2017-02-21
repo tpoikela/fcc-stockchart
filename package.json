@@ -4,20 +4,29 @@
   "description": "A stock chart app for showing real-time stock data.",
   "main": "server.js",
   "directories": {
+    "client": "client",
+    "public": "public",
+    "server": "server",
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/data-ctrlTest.js",
+    "build": "node node_modules/gulp/bin/gulp.js build",
+    "postinstall": "npm run build",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tpoikela/fcc-stockchart.git"
   },
+  "engines": {
+    "node": "6.9.4"
+  },
   "keywords": [
     "React",
     "express",
     "node",
-    "mongodb"
+    "socket.io"
   ],
   "author": "Tuomas Poikela",
   "license": "MIT",
@@ -35,7 +44,6 @@
     "gulp": "^3.9.1",
     "gulp-nodemon": "^2.2.1",
     "gulp-sass": "^3.1.0",
-    "mongoose": "^4.8.1",
     "morgan": "^1.7.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
