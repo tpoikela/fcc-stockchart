@@ -5,10 +5,15 @@
  */
 class DataController {
 
-    constructor() {
-
+    constructor(conf) {
         this.msPerDay = 24 * 3600 * 1000;
         this.verbosity = 0;
+
+        if (conf) {
+            if (conf.hasOwnProperty('verbosity')) {
+                this.verbosity = conf.verbosity;
+            }
+        }
     }
 
     error(msg) {
@@ -99,19 +104,24 @@ class DataController {
     }
 
 
-    /* Filters data based on minX and maxX values. Called just before drawing
-     * the plot.*/
+    /* Filters data based on minX and maxX values. */
     filterData(data, minX, maxX) {
-        var result = [];
-        this.logMsg('filterData max: ' + maxX + ' min: ' + minX);
-        data.forEach( item => {
-            var tradingDate = new Date(item.tradingDay);
-            if (tradingDate <= maxX && tradingDate >= minX) {
-                result.push(item);
-            }
-        });
-        this.logMsg('filterData: result has ' + result.length + ' items');
-        return result;
+        if (minX < maxX) {
+            var result = [];
+            this.logMsg('filterData max: ' + maxX + ' min: ' + minX);
+            data.forEach( item => {
+                var tradingDate = new Date(item.tradingDay);
+                if (tradingDate <= maxX && tradingDate >= minX) {
+                    result.push(item);
+                }
+            });
+            this.logMsg('filterData: result has ' + result.length + ' items');
+            return result;
+        }
+        else {
+            console.error('minX must be < maxX.');
+            return [];
+        }
     }
 
     /* Returns min and max Y value in the data.*/
@@ -179,9 +189,8 @@ class DataController {
         var minGrowth = 0;
         var maxGrowth = 0;
 
-        var i = 0;
         // Compute min/max rates and daily growth rates until today
-        for (i = indexFound; i < dataPerSymbol.length; i++) {
+        for (let i = indexFound; i < dataPerSymbol.length; i++) {
             var price = dataPerSymbol[i][type];
             var growth = 100 * (price / startPrice) - 100;
             dataPerSymbol[i].growth = growth;
