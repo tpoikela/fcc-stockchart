@@ -92,6 +92,15 @@ describe('DataCtrl class', function() {
         var latestDate = ctrl.getLatestDate(data);
         expect(latestDate.getMonth()).to.equal(4);
         expect(latestDate.getFullYear()).to.equal(2015);
+    });
+
+    it('can filter data based on min/max dates', function() {
+        var minX = new Date('2016-02-01');
+        var maxX = new Date('2016-04-15');
+        var res = ctrl.filterData(symData, minX, maxX);
+        var nLast = res.length - 1;
+        expect(res[0].tradingDay).to.equal('2016-02-01');
+        expect(res[nLast].tradingDay).to.equal('2016-04-01');
 
     });
 
