@@ -16,7 +16,8 @@ var port = process.env.PORT || 7070;
 
 // Define paths for all source files here
 var paths = {
-    client: ['./client/jsx/*.jsx', './client/plots/xyplot.js'],
+    client: ['./client/jsx/*.jsx', './client/plots/xyplot.js',
+        './client/ctrl/*.js'],
     sass: ['./scss/*.*'],
 
     server: './server.js',
