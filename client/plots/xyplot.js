@@ -303,7 +303,8 @@ class XYPlot {
         if (this.priceType === 'growth') {
             var minShownDate = minDate;
             this.ctrl.adjustWeekendDate(minShownDate);
-            this.computeGrowthForSymbol(minShownDate, symbol);
+            this.ctrl.computeGrowthForSymbol(this.data, minShownDate, symbol,
+                this.growthForType);
         }
 
         var nSyms = Object.keys(this.data).length;
