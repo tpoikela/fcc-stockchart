@@ -1,7 +1,7 @@
 {
   "name": "fcc-stockchart",
   "version": "1.0.0",
-  "description": "A stock chart app for showing real-time stock data.",
+  "description": "A stock chart app for showing historical stock data and trends.",
   "main": "server.js",
   "directories": {
     "client": "client",
