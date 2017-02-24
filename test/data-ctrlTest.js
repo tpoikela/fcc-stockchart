@@ -3,11 +3,11 @@ const expect = require('chai').expect;
 const DataCtrl = require('../client/ctrl/data-ctrl');
 
 var symData = [
-    {tradingDay: '2016-01-01'},
-    {tradingDay: '2016-02-01'},
-    {tradingDay: '2016-03-01'},
-    {tradingDay: '2016-04-01'},
-    {tradingDay: '2016-05-01'}
+    {tradingDay: '2016-01-01', high: 100},
+    {tradingDay: '2016-02-01', high: 200},
+    {tradingDay: '2016-03-01', high: 300},
+    {tradingDay: '2016-04-01', high: 400},
+    {tradingDay: '2016-05-01', high: 500}
 ];
 
 
@@ -18,7 +18,6 @@ var symData2 = [
     {tradingDay: '2016-09-01'},
     {tradingDay: '2017-05-01'}
 ];
-
 
 var data = {
     XXX: {
@@ -88,19 +87,31 @@ describe('DataCtrl class', function() {
         expect(maxY).to.equal(12);
     });
 
-    it('returns the latest date entry in all datasets', function() {
+    it('returns the latest date entry in first dataset', function() {
         var latestDate = ctrl.getLatestDate(data);
         expect(latestDate.getMonth()).to.equal(4);
-        expect(latestDate.getFullYear()).to.equal(2015);
+        expect(latestDate.getFullYear()).to.equal(2016);
     });
 
     it('can filter data based on min/max dates', function() {
+        ctrl.verbosity = 0;
         var minX = new Date('2016-02-01');
         var maxX = new Date('2016-04-15');
         var res = ctrl.filterData(symData, minX, maxX);
         var nLast = res.length - 1;
         expect(res[0].tradingDay).to.equal('2016-02-01');
         expect(res[nLast].tradingDay).to.equal('2016-04-01');
+
+    });
+
+    it('computes growth rates for stock data', function() {
+        var minDate = new Date('2016-01-01');
+        ctrl.verbosity = 0;
+        ctrl.computeGrowthForSymbol(data, minDate, 'XXX', 'high');
+        data.XXX.data.forEach( (item, index) => {
+            var expGrowth = index * 100;
+            expect(item.growth).to.equal(expGrowth);
+        });
 
     });
 
