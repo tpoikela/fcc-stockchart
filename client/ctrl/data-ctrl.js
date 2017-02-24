@@ -178,7 +178,7 @@ class DataController {
 
         if (indexFound === -1) {
             var errMsg = 'For date ' + minDate + ' no data index found';
-            console.error('Error for symbol ' + symbol + ': ' + errMsg);
+            console.log('For symbol ' + symbol + ': ' + errMsg);
             return;
         }
 
