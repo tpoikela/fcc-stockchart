@@ -20,7 +20,6 @@ else {
 
 // Load required modules
 var express = require('express');
-var mongoose = require('mongoose');
 var morgan = require('morgan');
 const BarChart = require('./server/ctrl/barchart');
 const SocketCtrl = require('./server/ctrl/socket-ctrl');
@@ -37,9 +36,6 @@ var barchart = new BarChart(process.env.BARCHART_KEY);
 
 app.url = process.env.APP_URL;
 console.log('The full APP url: ' + app.url);
-
-mongoose.connect(process.env.MONGO_URI);
-mongoose.Promise = global.Promise;
 
 // Initialize resource paths for the server
 app.use('/build', express.static(process.cwd() + '/build'));
