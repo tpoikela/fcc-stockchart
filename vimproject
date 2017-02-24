@@ -17,6 +17,7 @@ stockchart=~/git/fcc-stockchart CD=~/git/fcc-stockchart filter="*.*" {
   barchartTest.js
   xyplot.js
   xyplotTest.html
+  data-ctrlTest.js
  }
  public=public {
   index.html
