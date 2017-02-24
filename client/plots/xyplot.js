@@ -14,6 +14,8 @@ class XYPlot {
         this.quiet = false;
         this.verbosity = 0;
 
+        this.ctrl.verbosity = this.verbosity;
+
         this.msPerDay = 24 * 3600 * 1000;
 
         this.data = {};
