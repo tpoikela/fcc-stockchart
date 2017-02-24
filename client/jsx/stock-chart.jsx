@@ -179,7 +179,7 @@ class StockChart extends React.Component {
 
         return (
             <div>
-                <h1>StockCharts:</h1>
+                <h1>StockChartZ:</h1>
                 <TimeSpanElem onClick={this.changeTimeSpan}/>
                 <PriceTypeElem onClick={this.setAxisTypeY}/>
 
