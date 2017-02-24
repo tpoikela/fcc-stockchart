@@ -1,2 +1,7 @@
 # fcc-stockchart
-A stock chart app for showing realt-time stock data, done for FreeCodeCamp full stack projects.
+
+A stock chart app for showing historical stock data and trends, done for
+FreeCodeCamp full stack projects.
+
+The application is deployed on Heroku at (http://stockchartz.herokuapp.com).
+
